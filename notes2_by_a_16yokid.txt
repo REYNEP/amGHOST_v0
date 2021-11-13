@@ -1,0 +1,163 @@
+TODO
+- Turn all this->varName to m_var_name [USING SNAKE-CASE] and to Functions too
+- INVESTIGATE MEMORY USAGE
+- INVESTIGATE include <GL/gl.h>
+- Introduce A SIMLE SET-UP Function for Speeding people's Workflow
+- FOR LOG AND amGHOST_CHK see log_n_chk.hh as of 18th MARTH 2021
+- FIGURE OUT WHERE TO PUT FUNCTION DESCRIPTIONS [inside .h or .cpp] what about VIRTUAL FUNCTIONS?
+  - WHAT ABOUT C-API.h or is it gonna be C_api.cpp
+- create amGHOST_Capi.cpp for C Support and those who would prefer 'amGHOST_' prefix over 'amGHOST_Heart->HEART_' which is created in amGHOST_Heart.cpp
+- Or rather make 'HEART_' prefix alias with preprocessors on top of amGHOST_Capi.cpp [thus we wouldn't need to write extra "amGHOST_Heart->"]
+- LET WINDOWS TURN OFF MONITOR After 10 Minutes and LET WINDOWS SLEEP after 30Minutes
+- Extended Characters Support and UNICODE Support (Variables containing Names and Title and Docs....)
+- Currently only 1 type of WNDCLASS and 1 WndProc.... Maybe add functionality to add more
+- Code based on THREAD SAFETY and Better THREAD Maintanance
+- IMPLEMENT BENCHMARKING
+- IMPLEMENT DEBUG MODE
+- Fully IMPLEMENT amGHOST Logger
+- Variable Amount of Switch cases inside WNDPROC [So that We don't have to check every other switch cases that someone's program might not even have the use of]
+- Maybe Implement a DefaultEventProcessor for amGHOST. cause the more features you add to amGHOST, the more people will have to write codes for each feature
+-- Like Currently, amGHOST passes a "WINDOW_QUIT" event to EventKonsuments but if the dev who uses amGHOST doesn't have code for handling that event then the window is
+-- gonna stay open even after someone hitting the CROSS-BUTTON, SO We might want to have a  DefaultEventProcessor() kind of thing in amGHOST
+-Keyboard Focus and Activation, Set Focus to the window that user clicks on in the DEFAULTEVENTPROCESSOR();
+- Upgrade Docs to DOXYGEN Level
+- https://stackoverflow.com/questions/59694432/im-trying-to-use-opengl-with-the-windows-api-on-different-threads
+
+iTypes [Each of these are like included in multiple Traslation UNITS within GHOST and also these are the only things that a C++ amGHOST API user has to include ]
+---------
+amGHOST_ISystem
+amGHOST_IContext
+amGHOST_IEvent
+amGHOST_IEK
+amGHOST_ITypes
+amGHOST_IWindow
+
+amGHOST V0.1alpha
+-------------------
+JAN28-2021: You can now Create Simple Blank windows with literally no Features
+FEB21-2021: Most of the Keyboard Keys are now added, - Currently Responses to both KeyDOwn and KEYUP and sends same old amGHOST_kKeyDown message
+FEB25-2021: Now you can Access the KeyTypes [amGHOST_TKey] from your very own EK
+
+Rule #1 Call amGHOST_CreateSystem() and remember not to Call it double
+Rule #2 At the end of your program call amGHOST_DisposeSystem(), Only after disposing one enables the ability to create another
+Rule #3 Call amGHOST Event Loop which's demo is in windowV0.3.c
+
+
+macro amGHOST_CPP
+--------------------
+amGHOST_Types.h:- amGHOST_EKProcPtr
+amGHOST_EK.h:- amGHOST_EventKonsument::dispose_event()
+
+
+EASTER EGG
+--------------------
+Currently a Search Keyword: EASTER
+
+
+PARTED WORKFLOW [C] (UPDATED LONG AGO)
+-----------------
+- amGHOST_CreateSystem
+  - Platform Specific initialization of amGHOST
+  - then initialize new OpenGL Context 
+- Create the First Window, that the USER is gonna Interact with (UI, UX and interaction, isn't that why we started amGHOST in the first Place?)
+- Initialize the Event System
+- MAIN-LOOP
+  - [All kinds of Main LOOP]
+    - 1. Default MainLoop, which is used for basic Window Interactions like TOP_RIGHT BAR Buttons
+  - Get Events
+  - Dispatch Supported Events to Windows
+  - [optional] Window then Posts the Events to active editor/UI Space/Context Area.... whatever you wish to call it
+  - Update Window/editor/UI Space/Context Area.... [hopedully with OpenGL]
+    - Support for things like PlayAnim/VideoPlay trigger
+    - Swap Buffers
+
+
+PARTED WORKFLOW [C++]
+--------------------
+- amGHOST_System::create_system(), amGHOST_System::get_system()
+  - set a var [amGHOST_System *] to whatever get_system returns
+- Use that Var to call other functions.
+  - [Note:] As var is a pointer [amGHOST_System *], you will need to only do [var->create_window()] and such
+- Create and EK with add_eventKonsument() [see amGHOST_System.cpp for ref] 
+  - Obviously you need to have your Proc made before that. [Proc = a function which will be invoked for every incoming events, remember, call dispose_events()]
+- MAIN LOOP
+  - process_events(); [This turns the Platform specific Events to amGHOST_Events and saves them in an std::deque]
+  - dispose_events(); [Every EK is invoked with that event passed as an parameters. See EK Details and C/C++ EK Mixing Details]
+  - NOTES:
+    - Now the question is how should you use these two Functions? Inside a While Loop? with a Check? or a sleep? Or Should this be just "while(1)"
+    - There's a thing that I know, you are using amGHOST because you are making an UI for your Program.... 
+    - 😉 [Am gonna guess you do need performance & Low-Level access]
+    - BLENDER Did it with c library function exit()                   [And I guess that's The best way to do it]
+    - When you don't pass true to process_events(), do a sleep somehow, look at get_events or get_event_next or is_eventQ_empty or process_events() return value
+  - -------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+  - MY THOUGHTS:
+    - using SLEEP is not recommended at all, please avoid amGHOST_Sleep or any other kind of sleep on the thread that you will be calling amGHOST
+    - [Note about Thread: By default any app would run in SINGLE THREAD, in the old days Every CPU had only 1 Thread and a Core]
+    - [+ At that time People didn't really have the idea of Multi-Threading]
+    - [But there's More to MultiThreading than you realise, Like You can actually have More threads than your actual CPU has nowadays, Which I guess wasn't possible in the old days]
+    - [I mean, a app is 1 Process, But you can do create More process from within an Process..]
+    - [And every process has multiple threads already in win10, before windows 7 there used to be 1 by default]
+    - [You can create More threads of execution than your actual Processor Threads.... ]
+    - Just Forget it, These Threads and STUFFS, There are Not really many Info Out there on this Topic
+    - END OF DISCUSSION!!!!
+    - --------------------------------
+- Remember to free the memory with Destroy functions and at the last amGHOST_System::destroy_system()
+
+
+
+ABOUT amGHOST
+-----------------
+GHOST is originally part of blender.... but the Code is huge, there are more functionality than I can imagine about. I needed something small and easy to manage....
+And so the journey of amGHOST began. It can currently be of no use
+
+If your program is multithreaded and you want to use amGHOST and maybe have the idea of multiTHreading amGHOST. Sadly I have to say that. amGHOST Doesn't support that....
+Everything of amGHOST has to be done on same Thread. And most of the time usually that thread is the MAIN Thread (a.k.a UI Thread, supposing that you are thinking of amGHOST because you want to make UI Based app)
+
+
+
+ARCHITECHTURE /s of amGHOST
+-----------------------------
+[Q1]
+Where does it start?  - amGHOST.h and amGHOST.cpp
+Only one amGHOST system supported, declared inside amGHOST.cpp [ amGHOST_System *heart = NULL; ]
+amGHOST_SystemWin32, amGHOST_SystemX11 inherits from amGHOST_System and We have done Virtual Function Overriding
+[Q1_End]
+
+[Q2]
+Why did we choose functions (eg. create_window() [note. see that amGHOST_CreateWindow calls heart->create_window]) to be inside classes like amGHOST_SystemWin32?
+Coudln't we just like write every function as JUST FUNCTIONS in different files.... and those files would have different implimentations for different platforms?
+Woudln't that have been easier? - My answer to that would be, YES it would have been easier.... But our code would have not been as strong as it is now.... in many ways
+Here Goes some reasons:-
+  - To understand the Main Reason, See Blender's GHOST's C++ Test examples.... As All functions are inside a Class, 
+  + We simply don't need to add 'amGHOST' prefix to every function that we implement.... We can also distinguish between different kinds of functions, like
+  + amGHOST_Event Functions are inside amGHOST_IEvent class, and amGHOST_System functions are inside amGHOST_ISystem class....
+  + Thus Things stay Separate and in a friendlier, readable way.... [At First I didn;t really Understand why even the amGHOST_IEvent.h exists] 
+  - If by mistake someone did include 2 of the Systems, like amGHOST_SystemWin32 and amGHOST_SystemX11 and they were not implemented as classes, Code would just not link....
+  - We can now add crazy features like creating both amGHOST_SystemWin32 and amGHOST_SystemX11 and running both of those at the same time, and to implement that feature we will
+  + only need to modify things inside amGHOST.cpp and amGHOST.h
+  + Heard of .NET? Pretty Populer on windows OS, some dev does use Win32 and .NET at the Same time.... Same goes for X11 and Wayland I think
+  - Simply saying, we thus have the ability to use amGHOST_SystemWin32 or amGHOST_SystemX11 and create multiple objects out of those
+  - Another reason is that, a Friggin' class is created on the heap, like malloc
+  - Another Plus point is that, MAYBE THIS IS BETTER DESIGN, i actually saw blender's GHOST do it this way so.... Yeah, I just followed on
+  - People Likes more power, and class gives your really much more power, because you can do crazy shits with less code using classes, and maintaining classes is the
+  + easiest of all the other crazy features that c++ gives us, the programmers....
+[Q2_End]
+
+[Q3]
+Why Did we choose amGHOST_ProcessEvents() and amGHOST_DisposeEvents()?
+  - you should already know that amGHOST_DisposeEvents() functions disposes every events in queue to every EventKonsument Function that you have created with amGHOST_AddEventKonsument
+  + If we hadn't done that then, the only other solution would be to make a function that Returns one or more amGHOST Events.
+  + We do have amGHOST_GetNextEvent(), which does what the function name says.... 
+
+  - But If we were to make amGHOST_GetQueuedEvents(), then we would have to worry ABOUT both an array of amGHOST Events and HOW MANY Events In that array are there.
+  + Doing that would have created much more complications for the users. Like we would have to return something like amGHOST_TEvents, But then again
+  - - THey would have to worry about 2 different Struct Types, amGHOST_TEvent and amGHOST_TEvents [amGHOST_TEvents holding a PTR to amGHOST_Event array & a size INTEGER]
+  - - Or The Other approach would be to implement amGHOST_EventsQueueSize(), and later on user creates an amGHOST_Event array using that size 
+  - + and passes the PTR to that array as a parameter of our function like this:- amGHOST_GetQueuedEvents(&array)
+  + If C had support for operator Overriding, then I might have implemented it this way....
+  + Because That Way, we would have just returned amGHOST_Events and you could just use [] operator to access elements in that struct/class
+
+  So we Just followed the Standard that People have been using for a long time, Heck even the win32 and X11 does it this way, you create a Procedure FUnction and somehow you
+  pass that function and associate with the window, and then that function is called for every event retrieved... Someday We Might Just Bring this Feature... where
+[Q3_End]

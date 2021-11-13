@@ -1,0 +1,105 @@
+Class Graph:
+----------------
+amGHOST_System -> amGHOST_Window -> amGHOST_Context
+
+
+Internal Rules i tried to follow
+-----------------------------------
+All Windows/X11/Cocoa/Wayland Implemented Functions are called like this ::wglMakeCurrent(); with '::' (double colon) in front
+All amGHOST CPP Api Functions are named in this SNAKE-CASE way [(eg. create_window(), create_system(), openGL_create_context()) a.k.a Member Functions of amGHOST CPP Api Classes]
+All amGHOST C-Api Functions starts with Prefix 'amGHOST_' [eg. amGHOST_CreateSystem(), amGHOST_CreateWindow(), amGHOST_CreateContextOpenGL()]
+And they also maintains the mix of [CAMEL-CASE + TITLE-CASE]
+All Class Member Variables/Functions/Methods are called with a relation to 'this' pointer (eg. this->m_var_name, this->func_name)
+All Member Variable names start with 'm_' prefix
+Also we have some Private Functions or functions with '_' suffix and Prefix which are really not meant to be used by users
+
+SOME 1 LINERS
+-----------------
+amGHOST_Types.h must be C-Friendly and that is the sole thing that amGHOST_Capi.h should include [amGHOST_Capi.cpp can include anything it wants]
+amGHOST_Event, amGHOST_EK, amGHOST_Context, amGHOST_Window doesn't Have any CPP Files
+and amGHOST_Context and amGHOST_Window doesn't have any NORMAL FUNCTIONS. By that I mean all the functions that it has except for CONSTRUCTOR and DESTRUCTOR are just PURE VIRTUAL Functions
+But amGHOST_Event and amGHOST_EK does have some NORMAL FUNCTIONS, Most of them I just made "inline" and put the Function Definiton inside the Header
+Thus we have 4 Less cpp files to manage and to search throught while trying to FInd Something
+all macros added by cmake are added 'amGHOST_BUILD_' PREFIX.....     smtimes amGHOST_VULKAN will work too for header INCLUDES    [but internally always amGHOST_BUILD_VULKAN should be used]  (TODO: this should be CATCHY )
+
+The Core
+---------
+The Way how it works is that there is a BASE CLASS for literally Everything. Like THE SYSTEM, THE WINDOW, THE RENDERING CONTEXT [Filename is amGHOST_CONTEXT]
+and then those base Classes has at least 1 Derived Classes based on which OS you are ON or rather your Choices, Like on UNIX, people can use WAYLAND or X11
+SO Every base class has some virtual Functions, and Derived Classes are Supposed to Deliver IMplementations of those PURE VIRTUAL Functions
+SO that Makes out Base Classes like amGHOST_System, amGHOST_Context, amGHOST_Window Abastract Classes
+That's Why you can't Really instantiate any of those base Classes
+
+Header management
+------------------
+PLATFORM SPECIFIC HEADER FILES are really HEAVY
+as they can include things such as windows.h, glew.h
+Specifically saying Included PLATFORM SPECIFIC HEADERS in amGHOST_System.cpp and nowhere else
+But one wouldn't be wrong if they said that PLATFORM SPECIFIC HEADERS are included throughout all INTERN FILES
+
+WHAT HEADERS SHOULD THE USER INCLUDE?
+---------------------------------------
+In the Readme I Wrote Earlier that, only including amGHOST_System.h should Give the amGHOST support for everything....
+So yeah, every other header even the amGHOST_Types is supposed to included in that
+
+
+Variables inside amGHOST_System.hh
+-----------------------------------
+T_EKVec, T_WindowVec are the std::Vectors that has all the window pointer Listed
+EventQ is a Std::deque which stores all the events that a Call to process_events got...
+but sooner or later, if someone calls dispatch_events all events are poped out of event queue one by one starting from the front
+
+
+Event System
+-------------------
+Okay, To Some people EK might seem like a Really weird Concept... But it's Not
+It's just simply a Class which has a FUNCTION Pointer as a private variable.... m_EK_proc
+amGHOST_System::dispatch_events() calls dispatch_event function which is a member of EK class
+and what dispatch_event() does is that it INVOKES the FUNCTION that was stored in that Variable inside EK Instance, that m_EK_proc Variable
+passing a amGHOST_Event* or amGHOST_EventHandle based on wheather amGHOST_CPP is defined or not
+
+
+
+also see amGHOST_DEV Macro in amGHOST_Debug.hh
+amGHOST_CPP macro [OLD VERSION - NEVER GOT RELEASED] and the amGHOST_CPP_ONLY
+-----------------------------------------------------------------------------------------------------
+in the Cmake you will see the macro amGHOST_CPP added.... if cmake option WITH_amGHOST_CPP is ON
+Currently that being ON only affects calling dispatch_event() from the EK Class, 
+as dispatch_event() passes amGHOST_Event* or amGHOST_EventHandle type to m_EK_proc
+Also in amGHOST_Types.h, amGHOST_EKProcPtr 's definition is based on amGHOST_CPP macro too
+IT USED TO BE LIKE THIS:-
+
+CMakeFiles.txt:-
+option(WITH_amGHOST_CPP "Enables Some Extra CPP Features, See the Notes.txt For Now" ON)
+if(WITH_amGHOST_CPP)
+  add_compile_definitions(amGHOST_CPP)
+endif()
+
+amGHOST_Types.h:-
+#ifdef amGHOST_CPP
+typedef int (*amGHOST_EKProcPtr)(amGHOST_Event *);
+#else 
+typedef int (*amGHOST_EKProcPtr)(amGHOST_EventHandle);
+#endif
+
+amGHOST_EK.h:-
+int dispatch_event(amGHOST_Event *event) {
+  #ifdef amGHOST_CPP
+    return m_EK_proc(event);
+  #else
+    return m_EK_proc((amGHOST_EventHandle) event);
+  #endif
+}
+
+Then we INTRODUCED Double Declaration of the Same thing for both C and CPP Support:-
+SEE the amGHOST_EK.hh file, you will understand....
+and we introduced amGHOST_CPP_ONLY macro, if someone defines that macro with cmake like with add_compile_definitions(amGHOST_CPP_ONLY)
+Then none of the '_Capi' THINGS will be Compiled
+
+The problem was that, We were like making amGHOST_CPP an Compile time macro for amGHOST based on which amGHOST was to support Only C-API or only CPP
+Like see the before code from amGHOST_Types.h... in the above examples....
+But We need amGHOST to be a Library which by default when build should have both C-API and CPP Support. And Thus we can have a single .lib file which
+will contain all the Functions that a C-API user or a CPP user will need.... It will be Distributed like .exe files are distributed... so that outta the box
+Anybody without any prior knowledge of amGHOST can use this whole goddamn project
+and Later if they really Plan on keeping using amGHOST on their Project They can get the SOurce code and ADD Flags like amGHOST_CPP_Only to only Support CPP
+Why no amGHOST_C_ONLY? Cause it would suck.... TODO: Just ask people to Make their Own kinda thing

@@ -1,0 +1,7 @@
+build-x64
+build
+
+.vscode
+
+extern
+lib-amGHOST
