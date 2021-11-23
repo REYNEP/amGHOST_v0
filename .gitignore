@@ -3,5 +3,5 @@ build
 
 .vscode
 
-extern
-lib-amGHOST
+/extern
+lib-amGHOST.lib

@@ -1,6 +1,10 @@
 #ifndef amGHOST_CONTEXT
 #define amGHOST_CONTEXT
 
+#ifndef amGHOST_TYPES
+  #include "amGHOST_Types.h"
+#endif
+
 //OpenGL/VK For Now
 /**
 * NOTES: 1. Contexts are bound to windows & only 1 context can be active at a time, that is where all drawing would happen.

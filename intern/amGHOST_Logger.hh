@@ -19,7 +19,13 @@
 #else
   #define __FUNCINFO__ "[FuncInfo not supported by current compiler]"
 #endif
-#define LOG_DEV(x) LOG(__FILE__ << " || Function: " << __FUNCINFO__ << "() - Line" << __LINE__ << std::endl << "Log-Message:- "<< x << std::endl)
+
+#ifdef amGHOST_DEV_CMAKE
+  #define LOG_DEV(x) LOG(__FILE__ << " || Function: " << __FUNCINFO__ << "() - Line" << __LINE__ << std::endl << "Log-Message:- "<< x << std::endl)
+#else
+  #define LOG_DEV(x)
+#endif
+
 // MSVC Has Got a Huge amount of Predefined Macros:- https://docs.microsoft.com/en-us/cpp/preprocessor/predefined-macros
 #define LOG_MANGLED_MSVC(x) LOG_DEV(x << " MANGLED NAME: " << __FUNCDNAME__)
 

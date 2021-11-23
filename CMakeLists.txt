@@ -84,6 +84,8 @@ option(amGHOST_BUILD_TSuccess  "some Func returns amGHOST_TSuccess instead of BO
 option(amGHOST_VULKAN_WindowSurface  "Window Surface is Platform Specific.... and amVK has no Control over that" ON)
 option(amGHOST_BUILD_OPENGL  "OpenGL Support [amGHSOT_ContextWGL/GLX/EGL.cpp will be Compiled and Linked] glew.h will be included" ON)
 
+option(amGHOST_DEV "Enables some logging stuffs" OFF)
+
 
 
 
@@ -239,6 +241,12 @@ endif()
 
 
 
+if(amGHOST_DEV)
+  list(APPEND   DEF   amGHOST_DEV_CMAKE)
+endif()
+
+
+
 
 #-----------------------------------------------------------------------------
 # Finally Where we Make the amGHOST Library
@@ -268,3 +276,4 @@ unset(amGHOST_BUILD_TSuccess CACHE)
 unset(amGHOST_BUILD_WIN32 CACHE)
 unset(amGHOST_VULKAN_WindowSurface CACHE)
 unset(amGHOST_BUILD_OPENGL CACHE)
+unset(amGHOST_DEV CACHE)
