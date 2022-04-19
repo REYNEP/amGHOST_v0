@@ -14,6 +14,7 @@ endif()
 set(EXTERN            ${PROJECT_SOURCE_DIR}/extern)       #Downloaded by `make.py`
 set(VAR_VULKAN_DIR        ${EXTERN}/vulkan-sdk-lunarg)    #Needed if   amGHOST_VULKAN_WindowSurface [option] is ON
 set(VAR_GLEW_DIR          ${EXTERN}/glew)                 #Needed if   amGHOST_BUILD_OPENGL         [option] is ON
+set(VAR_amVK_LOGGER_N_UTIL ${PROJECT_SOURCE_DIR}/amVK_LoggerNUtils)
 # later add_subdirectory(VAR_GLEW_DIR) in CMakeLists.txt.... so glew has to have a `CMakeLists.txt` Too!
 
 if (amGHOST_BUILD_OPENGL)

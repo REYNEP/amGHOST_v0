@@ -1,8 +1,6 @@
-#include "amGHOST_Logger.hh"
+#include "amVK_Logger.hh"
 #include "amGHOST_SystemWIN32.hh"
 #include "amGHOST_WindowWIN32.hh"
-
-//Variables with 's_' are defined inside amGHOST_SystemWIN32 class
 
 amGHOST_SystemWIN32::amGHOST_SystemWIN32() {
   this->reg_wc();
@@ -10,13 +8,13 @@ amGHOST_SystemWIN32::amGHOST_SystemWIN32() {
 }
 
 /**
-* DESTRUCTOR
-* All the Windows, Contexts and Things are destroyed when dispose_system() is called....[Inside amGHOST_System.cpp]
-* But some functions like UnregisterClassA are only Win32 SPecific that's Why we have this DESTRUCTOR
-*/
+ * DESTRUCTOR
+ * All the Windows, Contexts and Things are destroyed when dispose_system() is called....[Inside amGHOST_System.cpp]
+ * But some functions like UnregisterClassA are only Win32 SPecific that's Why we have this DESTRUCTOR
+ */
 bool amGHOST_SystemWIN32::destroyer(void) {
   if (!::UnregisterClassA(s_wndClassName, s_hInstance)) {
-    LOG_DEV("Window Class wasn't found or a Window using this class still exists exists....");
+    amVK_LOG_EX("Window Class wasn't found or a Window using this class still exists exists....");
     return false;
   }
   return true;
@@ -38,10 +36,11 @@ bool amGHOST_SystemWIN32::opengl_load(void) {
 #ifdef amGHOST_BUILD_OPENGL
   return amGHOST_ContextWGL::opengl_load();
 #else
-  LOG("amGHOST_OPENGL macro Not defined when compiling.... [WARNING: Note that If you define Multiple Context Macros like amGHOST_VULKAN and amGHOST_OPENGL, your Application can get heavy!!!!]");
+  amVK_LOG_EX("[macro] amGHOST_BUILD_OPENGL support was disabled when building");
   return false;
 #endif
 }
+
 
 
 
@@ -50,29 +49,23 @@ amGHOST_Window* amGHOST_SystemWIN32::create_window(char *title, int posX, int po
   amGHOST_WindowWIN32 *newCreatedWindow = new amGHOST_WindowWIN32(title, posX, posY, sizeX, sizeY);
   if (!newCreatedWindow->m_hwnd) {  //ERROR Checking
     newCreatedWindow->destroyer();
-    return NULL;
+    return nullptr;
   }
   else {
     if (instantShow) {newCreatedWindow->show_window();}
-    T_WindowVec.push_back((amGHOST_Window *) newCreatedWindow);
+    amVK_ArrayDYN_PUSH_BACK(T_WindowVec) = (amGHOST_Window *) newCreatedWindow;
   }
 
   return (amGHOST_Window *) newCreatedWindow;
 }
 
-//TODO: UPdate this and Decide what to do with all those vectors inside amGHOST_System.hh
 bool amGHOST_SystemWIN32::destroy_window(amGHOST_Window* window) {
   if (window) {
     amGHOST_WindowWIN32 *window_conv = (amGHOST_WindowWIN32 *) window;
     window_conv->destroyer();
 
-    int index = 0;
-    for (amGHOST_Window *W : T_WindowVec) {
-      if (W == window) {
-        T_WindowVec.erase(T_WindowVec.begin() + index);
-        break;
-      }
-      index += 0;
+    for (uint32_t i = 0, n = T_WindowVec.neXt; i < n; i++) {
+      if (T_WindowVec.data[i] == window) { T_WindowVec.lazy_erase(i); break; }
     }
 
     return true;
@@ -80,20 +73,40 @@ bool amGHOST_SystemWIN32::destroy_window(amGHOST_Window* window) {
   return false;
 }
 
+amGHOST_Window *amGHOST_SystemWIN32::get_window(HWND hwnd) {
+  for (uint32_t i = 0, n = T_WindowVec.neXt; i < n; i++) {
+    amGHOST_WindowWIN32 *W_conv = (amGHOST_WindowWIN32 *) T_WindowVec.data[i];
+    if (W_conv->m_hwnd == hwnd) {
+      return W_conv;
+    }
+  }
+  return nullptr;
+}
+
+
+
+
+
+
+
+
+
 
 
 /*
-ATTENTION, EVENT SYSTEM CODE BELOW 😉 
-*/
+ * ATTENTION, EVENT SYSTEM CODE BELOW 😉 
+ */
 bool amGHOST_SystemWIN32::process_events(bool waitForEvent) {
   MSG msg;
 
   if (!::PeekMessageA(&msg, NULL, 0, 0, PM_NOREMOVE)) {
-    if (waitForEvent) {
-    #if 0
+    if (!waitForEvent) { return false; } 
+    else {
+      #if 0
       ::Sleep(1);
-    #else
-      /* GHOST SUPPORTS TIMERS For Tasks 
+
+      #else
+      /** \todo IMPL. GHOST SUPPORTS TIMERS For Tasks 
 
       GHOST_TUns64 next = timerMgr->nextFireTime();
       GHOST_TInt64 maxSleep = next - getMilliSeconds();
@@ -105,27 +118,29 @@ bool amGHOST_SystemWIN32::process_events(bool waitForEvent) {
         ::SetTimer(NULL, 0, maxSleep, NULL);
         ::WaitMessage();
         ::KillTimer(NULL, 0);
-      */
-      ::WaitMessage();  
-      /*Seems Like WaitMessage Actually doesn't go into sleep, rather it returns after a certail time, say for 500ms
-        LOG("WaitMessage Returned")   // [You will see this getting printed a couple of times persecond]
-        TODO: Implement Blender's SetTimer Approach as that is also Win32 Library Function */
-      goto weGotEvent;
-    #endif
-    }
 
-    return false;
+       * WaitMessage Actually doesn't go into sleep, rather it returns after a certail time, 
+       * say after 50ms, after an event [Mouse/Keyboard/InputDevice] is received, as expected 
+      */
+      ::WaitMessage();
+      #endif
+    }
   }
 
-  weGotEvent:
-  {
-    while (::PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
-      ::TranslateMessage(&msg);
-      ::DispatchMessage(&msg);    //Dispatches The Message to a WindowProcedure a.k.a WndProc [SEE BELOW]
-    }
+  //weGotEvent
+  while (::PeekMessageA(&msg, nullptr, 0, 0, PM_REMOVE) != 0) {
+    ::TranslateMessage(&msg);
+    ::DispatchMessageA(&msg);    /** Dispatches to WindowProcedure a.k.a \fn WndProc [SEE BELOW] */
+    /** \todo msg.hwnd might be NULL, but still a valid message */
   }
   return true;
 }
+
+
+
+
+
+
 
 
 
@@ -141,7 +156,7 @@ bool amGHOST_SystemWIN32::process_events(bool waitForEvent) {
  * \function Register the WNDCLASS
  */
 bool amGHOST_SystemWIN32::reg_wc() {
-  LOG_DEV("WNDCLASS has been created in amGHOST_Win32.h" << std::endl << " HOW U DOIN'? Never Really Thought a Preprocessor Could be This Amazing....");
+  _LOG("WNDCLASS has been created in amGHOST_Win32.h" << amVK::endl << " HOW U DOIN'? Never Really Thought a Preprocessor Could be This Amazing....");
   WNDCLASS wcTMP;
 
   //openGL requires it to be CS_OWNDC, see https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
@@ -154,13 +169,13 @@ bool amGHOST_SystemWIN32::reg_wc() {
   wcTMP.cbClsExtra = 0;
   wcTMP.cbWndExtra = 0;
   //LoadIcon Needs NULL param when loading system Standard Icon, This Probably Only Loads the ICON only, And Displaying it is on a whole other lvl
-  wcTMP.hIcon = ::LoadIcon(NULL, IDI_APPLICATION);
+  wcTMP.hIcon = ::LoadIcon(nullptr, IDI_APPLICATION);
   //LoadCursor Also Needs NULL Param when Loading System Standard Cursor, This Loads the Cursor which is Used as Default, later you can change
-  wcTMP.hCursor = ::LoadCursor(NULL, IDC_ARROW);
+  wcTMP.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
   //I would like to call this background color
   wcTMP.hbrBackground = 0x00000000;
   //You will need to pass name of the menu that you create and want to associate with the window
-  wcTMP.lpszMenuName = NULL;
+  wcTMP.lpszMenuName = nullptr;
   //CreateWindow will need this, (although i think passing &wc in CreateWindow would have been better, as WNDCLASS is a typedef struct)
   wcTMP.lpszClassName = s_wndClassName;
 
@@ -188,12 +203,12 @@ void amGHOST_SystemWIN32::init_rawInput() {
   if (::RegisterRawInputDevices(devices, DEVICE_COUNT, sizeof(RAWINPUTDEVICE)))
     ;  // yay!
   else 
-    LOG_DEV("RegisterRawInputDevices Failed!!");
+    amVK_LOG_EX("RegisterRawInputDevices Failed!!");
 
   #undef DEVICE_COUNT
 }
 
-amGHOST_Event* amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAWKEYBOARD *raw) {
+void amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAWKEYBOARD *raw, amGHOST_Event* event) {
   short vKey = raw->VKey;
   amGHOST_TKey key;
 
@@ -218,7 +233,6 @@ amGHOST_Event* amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAW
   }
 
 
-  amGHOST_Event* event = NULL;
   /** 
     \see: https://docs.microsoft.com/en-us/windows/win32/api/winuser/ns-winuser-rawkeyboard
     You see the flags Section? there are 4 Flags, 
@@ -228,16 +242,13 @@ amGHOST_Event* amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAW
     RI_KEY_E1 means third bit is ON
   */
   if (raw->Flags & RI_KEY_BREAK) {
-    LOG(raw->Flags);
-    event = new amGHOST_Event(amGHOST_kKeyUp, window, key);
+    _LOG(raw->Flags);
+    *event = amGHOST_Event(amGHOST_kKeyUp, window, key);
   }
   else {
-    LOG(raw->Flags);
-    event = new amGHOST_Event(amGHOST_kKeyDown, window, key);
+    _LOG(raw->Flags);
+    *event = amGHOST_Event(amGHOST_kKeyDown, window, key);
   }
-  
-
-  return event;
 }
 
 
@@ -252,20 +263,12 @@ amGHOST_Event* amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAW
  *
  * For Docs On these Functions, Check MSDN
  */
-amGHOST_Window *amGHOST_SystemWIN32::get_window(HWND hwnd) {
-  for (amGHOST_Window *W : T_WindowVec) {
-    amGHOST_WindowWIN32 *W_conv = (amGHOST_WindowWIN32 *) W;
-    if (W_conv->m_hwnd == hwnd) {
-      return W_conv;
-    }
-  }
-  return NULL;
-}
+
 LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   LRESULT lResult = 0;
   if (!hwnd) {
     // Events without valid hwnd
-    LOG("GHOST_SystemWin32::wndProc: event without window\n");
+    amVK_LOG_EX("GHOST_SystemWin32::wndProc: event without window\n");
     return lResult;
   }
 
@@ -273,12 +276,16 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
   amGHOST_SystemWIN32 *m_system = (amGHOST_SystemWIN32 *) get_system();
   amGHOST_Window *event_win = m_system->get_window(hwnd);
   
-  amGHOST_Event *event = NULL;
+  amGHOST_Event *event = m_system->_get_nextSpot();
+  *event = amGHOST_Event(amGHOST_kWindowClosed, event_win, amGHOST_kKeyUnknown);
+  //amVK_LOG("_next SPOT: " << (uint64_t)event);
 
   /** LOG Events....
   if ((msg != 132) && (msg != 160) && (msg != 512) && (msg != 32)){
     LOG("wndProc: " << msg);
   } */
+
+  
   switch (msg)  //must break after each case.... cz case is like 'Label'  and if you don't break the flow of code will continue
   {
     case WM_PAINT:
@@ -286,17 +293,18 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
       BeginPaint(hwnd, &ps);
       EndPaint(hwnd, &ps);
       break;
-    case WM_DESTROY:
-      event = new amGHOST_Event(amGHOST_kWindowClosed, event_win, amGHOST_kKeyUnknown);
+    case WM_DESTROY:  /** sent when someone calls DestroyWindow */
+      *event = amGHOST_Event(amGHOST_kWindowClosed, event_win, amGHOST_kKeyUnknown);
       break;
-    case WM_CLOSE:
-      event = new amGHOST_Event(amGHOST_kWindowClose, event_win, amGHOST_kKeyUnknown);
+    case WM_CLOSE:    /** Window Destruction is requested.... */
+      *event = amGHOST_Event(amGHOST_kWindowClose, event_win, amGHOST_kKeyUnknown);
       break;
     case WM_SIZING:
-      event = new amGHOST_Event(amGHOST_kWindowResizing, event_win, amGHOST_kKeyUnknown);
+      *event = amGHOST_Event(amGHOST_kWindowResizing, event_win, amGHOST_kKeyUnknown);
       break;
     case WM_SIZE:
-      event = new amGHOST_Event(amGHOST_kWindowResized, event_win, amGHOST_kKeyUnknown);
+      *event = amGHOST_Event(amGHOST_kWindowResized, event_win, amGHOST_kKeyUnknown);
+      amVK_LOG("WM_SIZE got");
       break;
 
     /* ----------------------------------------------------------------
@@ -334,9 +342,9 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           RAWKEYBOARD *raw_key_data_ptr = &(raw.data.keyboard);
           
           //TODO Error Handling inside process_keyEvent
-          event = process_keyEvent(event_win, raw_key_data_ptr);
-          if (!event) {
-            LOG("KEY IGNORED: " << msg << "(amGHOST_SystemWIN32::WndProc key event)");
+          process_keyEvent(event_win, raw_key_data_ptr, event);
+          if (event->m_type == amGHOST_kUnknownEvent) {
+            _LOG("KEY IGNORED: " << msg << "(amGHOST_SystemWIN32::WndProc key event)");
           }
         }
 
@@ -364,32 +372,33 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
           mousePos.y = point.y;
         }
 
-        event = new amGHOST_Event(amGHOST_kMCursorMove, event_win, mousePos);
+        *event = amGHOST_Event(amGHOST_kMCursorMove, event_win, mousePos);
+        //amVK_LOG("MouseMove: " << event->m_type << "    " << (uint64_t)event);
       }
       break;
     }
     case WM_MOUSEWHEEL:
-      event = new amGHOST_Event(amGHOST_kMWheel, event_win, ((short)HIWORD(wParam) < 0) ? amGHOST_kWheelDown : amGHOST_kWheelUp);
+      *event = amGHOST_Event(amGHOST_kMWheel, event_win, ((short)HIWORD(wParam) < 0) ? amGHOST_kWheelDown : amGHOST_kWheelUp);
       break;
 
     case WM_LBUTTONDOWN:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kLMBDown);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kLMBDown);
       break;
     case WM_MBUTTONDOWN:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kMMBDown);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kMMBDown);
       break;
     case WM_RBUTTONDOWN:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kRMBDown);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kRMBDown);
       break;
 
     case WM_LBUTTONUP:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kLMBUp);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kLMBUp);
       break;
     case WM_MBUTTONUP:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kMMBUp);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kMMBUp);
       break;
     case WM_RBUTTONUP:
-      event = new amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kRMBUp);
+      *event = amGHOST_Event(amGHOST_kMButton, event_win, amGHOST_kRMBUp);
       break;
 
     case WM_CONTEXTMENU:
@@ -410,13 +419,14 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
       break;
   }
 
-  if (event) {
+  if (event->m_type == amGHOST_kUnknownEvent) {
     //HERE WE QUEUE the EVENT in the EventQ which is a Member of amGHOST_System
-    m_system->add_toEventQ(event);  
+    m_system->_dismiss_last_event();
+    //amVK_LOG("Dismissing last Event");
+  }
+  else {
+    //amVK_LOG("Keeping event: " << event->m_type << "   WIN32: " << msg);
   }
 
   return lResult;
-}
-void amGHOST_SystemWIN32::add_toEventQ(amGHOST_Event *event) {
-  EventQ.push_back(event);
 }

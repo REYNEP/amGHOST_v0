@@ -1,9 +1,11 @@
-#include "amGHOST_Logger.hh"
+#include "amVK_Logger.hh"
 #include "amGHOST_ContextWGL.hh"
 #include "amGHOST_SystemWIN32.hh" //windows.h + check if glewLoaded [as glewLoaded is not Static] + variables from amGHOST_SystemWIN32.hh eg.s_wndClassName
 
 #include "GL/glew.h"
 #include "GL/wglew.h"
+
+#include <stddef.h> //GCC NULL ERROR
 
 /**
 * There Could Be Multiple OpenGL Contexts, This is For Switching from One to Another
@@ -62,7 +64,7 @@ amGHOST_ContextWGL::amGHOST_ContextWGL(HWND hwnd, HDC hdc, HGLRC hglrc)
 
 
   ::wglMakeCurrent(this->m_hdc, this->m_hglrc);
-  LOG("NEW OpenGL Context Created [WGL]");
+  amVK_LOG("NEW OpenGL Context Created [WGL]");
   std::cout << glGetString(GL_VERSION) << std::endl;
 }
 
@@ -73,10 +75,10 @@ void amGHOST_ContextWGL::opengl_clear(void) {
   glClear(GL_COLOR_BUFFER_BIT);
   bool swapped = ::SwapBuffers(::GetDC(this->m_hwnd));
   if (!swapped) {
-    LOG("::SwapBuffers failure, GetLastError() returns" << std::hex << ::GetLastError());
+    amVK_LOG("::SwapBuffers failure, GetLastError() returns" << std::hex << ::GetLastError());
   }
 
-  LOG("glClearColor and glCLear Called");
+  amVK_LOG("glClearColor and glCLear Called");
 }
 
 
@@ -144,7 +146,7 @@ bool amGHOST_ContextWGL::opengl_load(void) {
 
   HGLRC dummyHGLRC = ::wglCreateContext(dummyHDC);
   if (::wglMakeCurrent(dummyHDC, dummyHGLRC) == false) {
-    LOG_DEV("wglMakeCurrent Failed for dummyHGLRC");
+    amVK_LOG_EX("wglMakeCurrent Failed for dummyHGLRC");
     if (dummyHGLRC == NULL) {LOG("dummyHGLRC is NULL");}
   }
 
@@ -164,7 +166,7 @@ bool amGHOST_ContextWGL::opengl_load(void) {
 
   //WHY WE PASSING STRINGS? Probably Becasue of So so Many Functions and Macros and Stuffs
   if(wglewIsSupported("WGL_ARB_create_context") == 0) {
-    LOG_DEV("CLEARLY IT DIDNT WORK [TALKING about Loading OpenGL (GLEW)], because without WGL_ARB_create_context we can wouldn't be able to Extend any OpenGL Context");
+    amVK_LOG_EX("CLEARLY IT DIDNT WORK [TALKING about Loading OpenGL (GLEW)], because without WGL_ARB_create_context we can wouldn't be able to Extend any OpenGL Context");
     return false;
   }
 
@@ -175,7 +177,7 @@ bool amGHOST_ContextWGL::opengl_load(void) {
   ::DestroyWindow(dummyHWND);
 
   if (success == true) {
-    LOG("OpenGL Loaded by GLEW....");
+    amVK_LOG("OpenGL Loaded by GLEW....");
     amGHOST_System::heart->glewLoaded = true;
     return true;
   }

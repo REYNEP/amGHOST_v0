@@ -1,0 +1,51 @@
+option(
+    'is_REL_EXTERN',
+    type : 'boolean',
+    value : 'true',
+    description : '[\TODO WIP] turn this on... if any of the library is needed to be searched inside ${EXTERN}'
+)
+option('EXTERN', type : 'string', value : 'extern', description : 'extern folder relative to source dir....')
+# dont put a '/' in the beginning of an dir address, as that means computer/user/system root
+
+
+# VULKAN WindowSurface
+option(
+    'amGHOST_VULKAN_WindowSurface',
+    type : 'boolean',
+    value : 'true',
+    description : 'OS Specific VkSurfaceKHR (Vulkan Window Surface)'
+)
+# extern/vulkan-sdk-lunarg
+option(
+    'VAR_VULKAN_DIR',
+    type : 'string',
+    value : 'vulkan-sdk-lunarg',
+    description : 'dir is searched for Include/vulkan/vulkan.h... (relative to EXTERN)'
+)
+option(
+    'VAR_VULKAN_LIB_HINTS',
+    type : 'string',
+    value : 'lib;lib64',
+    description : 'Hints relative to VAR_VULKAN_DIR.... will be searched for vulkan.lib / vulkan-1.lib, (separate by ;)'
+)
+
+
+#in case you dont want the C-API.... (you know final library optimizations)
+option('amGHOST_CPP_ONLY', type : 'boolean', value : 'true', description : 'amGHOST_Capi.h can not be used, as amGHOST_Capi.cpp wont be built')
+option('amGHOST_USE_TSuccess', type : 'boolean', value : 'false', description : 'just a FANCY thing that blenders GHOST had... and I thought why not have it here too')
+
+
+#amVK_LoggerNUtils
+option(
+    'amVK_LoggerNUtils',
+    type: 'string',
+    value : 'amVK_LoggerNUtils',
+    description : 'directory [relative to amGHOST SRC DIR] to search for amVK_Logger.hh & amVK_Utils.hh'
+)
+
+option(
+    'amGHOST_V',
+    type : 'boolean',
+    value : 'true',
+    description : 'add def amGHOST_V_DISABLED if false'
+)

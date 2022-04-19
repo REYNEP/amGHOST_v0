@@ -3,7 +3,7 @@
 
 #include "amGHOST_Capi.h"
 #ifndef amGHOST_LOGGER
-  #include "amGHOST_Logger.hh"
+  #include "amVK_Logger.hh"
 #endif
 #ifndef amGHOST_SYSTEM
   #include "amGHOST_System.hh"  //We Don't Need to Include Anything. Because amGHOST_System is Supposed to be a Standalone Include Thing
@@ -64,13 +64,13 @@ void amGHOST_DisposeSystem(void) {
 * I Assure this does not. Because we also have a _EKVec_Capi_ vector here. which contains all the C-API Functions. & before push_backing to Heart's T_EKVec, we do check if that function already exists
 */
 static std::vector<amGHOST_EKProcPtr_Capi> _EKProcVec_Capi_ {};
-static amGHOST_Event *_last_event_ = NULL;              //maintained inside _EK_Workaround_
+static amGHOST_Event *_last_event_ = nullptr;              //maintained inside _EK_Workaround_
 static unsigned short counter_EK_Called = 0;            //Will be Reset if event passed to _EK_Workaround_ != last_event
 
 static int _EK_Workaround_(amGHOST_Event *event) {
   if (event != _last_event_) {
     if (counter_EK_Called != _EKProcVec_Capi_.size()) {
-      LOG("Not all C-Api EKs were Called for the Last amGHOST Supported Event. C-API-EKs Created: " << _EKProcVec_Capi_.size() << " & Called [For lastEvent]: " << counter_EK_Called << "\nNOTE: EKs are Ordered based on WHEN you called amGHOST_AddEventKonsument()");
+      amVK_LOG("Not all C-Api EKs were Called for the Last amGHOST Supported Event. C-API-EKs Created: " << _EKProcVec_Capi_.size() << " & Called [For lastEvent]: " << counter_EK_Called << "\nNOTE: EKs are Ordered based on WHEN you called amGHOST_AddEventKonsument()");
     }
 
     _last_event_ = event;
@@ -87,7 +87,7 @@ static int _EK_Workaround_(amGHOST_Event *event) {
 bool amGHOST_AddEventKonsument(amGHOST_EKProcPtr_Capi event_konsument_proc) {
   for (auto EKProc : _EKProcVec_Capi_) {
     if (EKProc == event_konsument_proc) {
-      LOG("Did not create an EK. Already an Event konsument added with that exact same function that you have passed");
+      amVK_LOG("Did not create an EK. Already an Event konsument added with that exact same function that you have passed");
       return false;
     }
   }
@@ -171,7 +171,7 @@ amGHOST_TSuccess amGHOST_DestroyWindow(amGHOST_WindowHandle window) {
     return amGHOST_kSuccess;
   }
 
-  LOG("Couldn't Destroy the Window");
+  amVK_LOG("Couldn't Destroy the Window");
   //TODO:- Specify which variable it was stored in, the memory address. maybe the line number and file that the variable was at,
   //TODO:- Dont Just Return, Make sure that no memory is leaked or stays in RAM after program is closed
 

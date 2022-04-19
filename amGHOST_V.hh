@@ -1,20 +1,34 @@
+#pragma once
 #ifndef amGHOST_V
 #define amGHOST_V
 
+/** CMAKE / MESON option */
+#ifndef amGHOST_V_DISABLED
+
+/** has Include Guard.... */
 #include "amGHOST_System.hh"
 
-/** inline, cz lets have multiple copied of code lines.... instead of Multiple Copies of the function itself */
-static inline amGHOST_System *amGHOST_init(void) {
-  if (amGHOST_System::heart == nullptr) {
-    amGHOST_System::create_system();
-  }
-  return amGHOST_System::get_system();
-}
+/** \see amGHOST_System.cpp */
+#ifdef amGHOST_V_IMPLIMENTATION
 
-/** Only problem with this file is, its gonna have this var in every Translation Unit.... 
- *  I can think of a bug, if 2 diff TranslationUnit in a .exe gets loaded in Different Threads, i dont think such tech/tool exists 
- * whatever. duh. 😜 */
-static amGHOST_System *amGHOST = amGHOST_init();
-#define amGHOST_SYS amGHOST
+    static inline amGHOST_System *amGHOST_init(void) {
+        if (amGHOST_System::heart == nullptr) {
+            amGHOST_System::create_system();
+        }
+        return amGHOST_System::get_system();
+    }
+    amGHOST_System *amGHOST_X = amGHOST_init();
 
-#endif //amGHOST_V
+    #define amGHOST_SYS    amGHOST_X
+
+#else
+
+    /** This used to be static.... */
+    extern amGHOST_System *amGHOST_X;
+    #define amGHOST_SYS    amGHOST_X
+    
+#endif
+
+#endif // amGHOST_V_DISABLED
+
+#endif // amGHOST_V

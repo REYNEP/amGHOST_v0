@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 # Paths with SPACES Aren't Supported
 project(amGHOST_V0.1beta)  #Cmake Docs on this command says,  SubDirectory should have usually have its own project() too
 
+set(CMAKE_CXX_STANDARD 17)    #amVK_IN's Member variables [intern/amVK_IN.hh]
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 
 #[[=======================================================================================================
@@ -74,8 +77,8 @@ project(amGHOST_V0.1beta)  #Cmake Docs on this command says,  SubDirectory shoul
   
 #=======================================================================================================]]
 
-option(amGHOST_BUILD_STATIC_EXTERN  "Statically link Extern libraries, such as VULKAN, GLEW, etc" ON)
-option(amGHOST_BUILD_WIN32  "For Windows" ON)
+option(amGHOST_BUILD_STATIC_EXTERN  "[TBA...WIP] Statically link Extern libraries, such as VULKAN, GLEW, etc" ON)
+option(amGHOST_BUILD_WIN32  "[I don't think we need to do this] For Windows" ON)
 
 option(amGHOST_BUILD_CPP_ONLY  "Currently only affects     amGHOST_EKProcPtr_Capi   in amGHOST_Types" ON)
 option(amGHOST_BUILD_TSuccess  "some Func returns amGHOST_TSuccess instead of BOOL.... Something that GHOST had" ON)
@@ -84,7 +87,10 @@ option(amGHOST_BUILD_TSuccess  "some Func returns amGHOST_TSuccess instead of BO
 option(amGHOST_VULKAN_WindowSurface  "Window Surface is Platform Specific.... and amVK has no Control over that" ON)
 option(amGHOST_BUILD_OPENGL  "OpenGL Support [amGHSOT_ContextWGL/GLX/EGL.cpp will be Compiled and Linked] glew.h will be included" ON)
 
+# For now this doesn't work... we gotta remove this along with improving logger....
 option(amGHOST_DEV "Enables some logging stuffs" OFF)
+
+option(amGHOST_V "add def amGHOST_V_DISABLED if off" ON)
 
 
 
@@ -164,7 +170,7 @@ set(SRC
 
 set(INC
   ./
-  intern/     #Logger TODO: Decide on Making a Universal amLogger
+  intern/
 )
 
 set(INC_SYS
@@ -177,6 +183,12 @@ set(LIB
 set(DEF
 )
 
+
+if(EXISTS ${VAR_amVK_LOGGER_N_UTIL}/amVK_Logger.hh)
+  ASSERT_listAppend(   INC  VAR_amVK_LOGGER_N_UTIL   )
+else()
+  message(FATAL_ERROR "amVK_Logger.hh wasn;t found....   do  `git submodule update`")
+endif()
 
 
 
@@ -241,10 +253,6 @@ endif()
 
 
 
-if(amGHOST_DEV)
-  list(APPEND   DEF   amGHOST_DEV_CMAKE)
-endif()
-
 
 
 
@@ -261,6 +269,12 @@ set(FINAL_MACROS
 foreach(macro ${DEF})
   list(APPEND FINAL_MACROS    amGHOST_BUILD_${macro})
 endforeach()
+if(amGHOST_DEV)
+  list(APPEND   FINAL_MACROS   amVK_DEBUG_LOG)
+endif()
+if(NOT amGHOST_V)
+  list(APPEND   FINAL_MACROS   amGHOST_V_DISABLED)
+endif()
 target_compile_definitions(lib-amGHOST  PUBLIC  "${FINAL_MACROS}")
 
 install(TARGETS lib-amGHOST
@@ -277,3 +291,4 @@ unset(amGHOST_BUILD_WIN32 CACHE)
 unset(amGHOST_VULKAN_WindowSurface CACHE)
 unset(amGHOST_BUILD_OPENGL CACHE)
 unset(amGHOST_DEV CACHE)
+unset(amGHOST_V CACHE)

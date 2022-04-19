@@ -12,10 +12,6 @@
 #endif
 
 
-/* Inlcuded inside thisFileName.cpp
- * #include "amGHOST_WindowWIN32.hh"
-*/
-
 /**
 * Currently Only amGHOST_ContextVK's CONSTRUCTOR is the Only Use, 
 * We Needed to save Platform Specific Things like hwnd, hInstance [Just Like we do in amGHOST_ContextWGL.hh], Thus also the CONSTRUCTOR had to have OS_Specific Impl.
@@ -61,7 +57,7 @@ class amGHOST_SystemWIN32 : public amGHOST_System
   //VARIABLES which are Needed Throughout amGHOST_SystemWIN32, amGHOSTWindowWIN32, amGHOST_ContextWGL.... I mean these are just WIN32 related vars
   WNDCLASS s_wc;
   const char* s_wndClassName = "amGHOST_WindowClass"; //wc.lpszClassName has to be set to this, and should be passed to windows that we want to create
-  HMODULE s_hInstance = ::GetModuleHandleA(NULL);  //NULL returns initial main EXE file's Handle
+  HMODULE s_hInstance = ::GetModuleHandleA(nullptr);  //NULL returns initial main EXE file's Handle
  protected:
   /**
   * Create and Register the s_wc variable that you can see above.
@@ -80,10 +76,9 @@ class amGHOST_SystemWIN32 : public amGHOST_System
   /**
     \see process_events(), that function will call the below function for Processing Keys
   */
-  static amGHOST_Event* process_keyEvent(amGHOST_Window *window, RAWKEYBOARD *raw);
+  static void process_keyEvent(amGHOST_Window *window, RAWKEYBOARD *raw, amGHOST_Event* event);
   
 
-  void add_toEventQ(amGHOST_Event *event);
   amGHOST_Window *get_window(HWND hwnd);
   /**
     win32 (Window Procedure Function) - Deals with OS Messages and Events, hwnd is the Handle to Window

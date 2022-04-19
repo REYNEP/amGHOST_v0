@@ -1,5 +1,4 @@
-//Include Guard
-//amGHOST_ErrorKonsument can be found in amGHOST_Debug.hh
+#pragma once
 #ifndef amGHOST_EK
 #define amGHOST_EK amGHOST_EventKonsument
 
@@ -20,6 +19,7 @@ class amGHOST_Event;
 class amGHOST_EventKonsument
 {
  public:
+  amGHOST_EventKonsument(void) {}
   amGHOST_EventKonsument(amGHOST_EKProcPtr EK) : m_EK(EK) {}
   ~amGHOST_EventKonsument() {}
 
@@ -29,7 +29,7 @@ class amGHOST_EventKonsument
   * More Special Values to be added Soon
   * [Note: This function is only called by the amGHOST_Syste::dispatch_events()]
   */
-  int dispatch_event(amGHOST_Event *event) {
+  inline int dispatch_event(amGHOST_Event *event) {
     return m_EK(event);
   }
 
@@ -41,7 +41,7 @@ class amGHOST_EventKonsument
   }
 
  protected:
-  amGHOST_EKProcPtr m_EK;
+  amGHOST_EKProcPtr m_EK = nullptr;
 };
 
 

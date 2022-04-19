@@ -1,5 +1,5 @@
-#if defined(amGHOST_BUILD_VULKAN) & defined(amGHOST_WindowWIN32_CPP)    //Won't need to Include this Anywhere Else   [vulkan/vulkan.h is in IWindow.h]
-  #define VK_USE_PLATFORM_WIN32_KHR   //Vulkan Loader adds WIN32 specific Functions, thats all i care about now on this MACRO
+#if defined(amGHOST_BUILD_VULKAN) & defined(amGHOST_WindowWIN32_CPP)
+  #define VK_USE_PLATFORM_WIN32_KHR
 #endif
 #ifndef amGHOST_WINDOW
   #include "amGHOST_Window.hh"

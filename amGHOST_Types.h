@@ -3,8 +3,8 @@
 #define amGHOST_TYPES
 //Include Guard
 
-#include <cstdint>  //int32_t
-#include <cstddef>
+#include <stdint.h>  //int32_t
+#include <stddef.h>
 
 //Code Copied from Blender GHOST_types.h
 #define amGHOST_CREATE_HANDLE(name) \

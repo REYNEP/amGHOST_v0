@@ -1,67 +1,54 @@
-/**
- * This file describes a single event like KeyPress, WindowClose, Resize [TODO: Joystick]
- */
-
-//Include Guard
+#pragma once
 #ifndef amGHOST_EVENT
 #define amGHOST_EVENT
 
 #ifndef amGHOST_TYPES
-    #include "amGHOST_Types.h"
+  #include "amGHOST_Types.h"
 #endif
 #ifndef amGHOST_WINDOW
   #include "amGHOST_Window.hh"
 #endif
-#include <iostream>
 
 /**
-  We Needed a Struct, And as we know in C++ structs and classes are the same
-*/
+ * describes a single event like KeyPress, WindowClose, Resize....
+ * 
+ *  TODO:
+ *    Joystick,
+ *    GraphicsTablet,
+ *    any HID (HardwareInputDevice)
+ *    & TimeStamp of the Event Support (win32 has it)
+ * 
+ * We Needed a Struct, And as we know in C++ structs and classes are the same
+ * All of these below are inside amGHOST_Types.h meaning that these are C compliant
+ * Blender's GHOST Declares these inside of protected, But we don't because, we wanted to let ppl just type event.m_type and access that
+ * 
+ */
 class amGHOST_Event 
 {
  public:
-
-  /**
-  * All of these below are inside amGHOST_Types.h meaning that these are C compliant
-  * Blender's GHOST Declares these inside of protected, But we don't because, we wanted to let ppl just type event.m_type anc access that 
-  *    note amGHOST_CPP macro has to be defined so that EventKonsuments can have amGHOST_Event* Parameter
-  */
-  const amGHOST_TEventType m_type;
-  const amGHOST_Window* m_win;
+  amGHOST_TEventType m_type = amGHOST_kUnknownEvent;
+  amGHOST_Window* m_win = nullptr;
 
   /** Intoduce furthur Pointers into extended data, like GraphicsTablet */
   union TEventData {
-    amGHOST_TKey key[2];  //2nd one is dummy
-    amGHOST_MiceInput mouse[2]; //2nd one is dummy
+    amGHOST_TKey key[2];          // 2nd one is dummy
+    amGHOST_MiceInput mouse[2];   // 2nd one is dummy
     amGHOST_TMicePos mousePos;
   } m_data;
-  //TODO Add Time Support
 
 
 
   /**
-    CONSTRUCTOR
+    CONSTRUCTOR & DESTRUCTOR
   */
-  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TKey key) 
-    : m_type(type), m_win(win)
-  {
-    m_data.key[0] = key;
-  }
-  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_MiceInput mouseIN) 
-    : m_type(type), m_win(win)
-  {
-    m_data.mouse[0] = mouseIN;
-  }
-  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TMicePos mousePos) 
-    : m_type(type), m_win(win)
-  {
-    m_data.mousePos = mousePos;
-  }
+  amGHOST_Event() {}
+  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TKey key)          : m_type(type), m_win(win) { m_data.key[0] = key; }
+  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_MiceInput mouseIN) : m_type(type), m_win(win) { m_data.mouse[0] = mouseIN; }
+  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TMicePos mousePos) : m_type(type), m_win(win) { m_data.mousePos = mousePos; }
 
-  /**
-    DESTRUCTOR
-  */
   ~amGHOST_Event() {}
+
+
 
   /**
    * Returns the event type.

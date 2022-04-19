@@ -19,7 +19,7 @@ except (ImportError, ModuleNotFoundError) as err:
 
 
 
-GDRIVE_URL_ID = "1dkGd6qD6N6dUO35gNzz5GMV-UpdluBBm";
+GDRIVE_URL_ID = "1pGGfm0yh6bExzQlu3Da4-NJP86m6r_3s";
 EXTERN_ZIP = "amGHOST_Externs.zip" #Same name on drive
 EXTERN_DIR = "./extern"
 #               ╺┳┓┏━┓╻ ╻┏┓╻╻  ┏━┓┏━┓╺┳┓     ╻ ╻┏┓╻╺━┓╻┏━┓     ┏━┓┏━╸┏┳┓┏━┓╻ ╻┏━╸
@@ -87,8 +87,8 @@ def build_cmake():
 def get_submodules():
     print("\nmake.py : `git submodule init`")
     subprocess.run(["git", "submodule", "init"], shell=True)
-    print("\nmake.py : `git submodule update`")
-    subprocess.run(["git", "submodule", "update"], shell=True)
+    print("\nmake.py : `git submodule update --remote`")
+    subprocess.run(["git", "submodule", "update", "--remote"], shell=True)
 
 
 #               ┏┳┓┏━┓╻┏┓╻

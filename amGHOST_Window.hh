@@ -1,4 +1,4 @@
-//Include Guard
+#pragma once
 #ifndef amGHOST_WINDOW
 #define amGHOST_WINDOW
 
@@ -9,18 +9,16 @@
   #include "amGHOST_Context.hh"
 #endif
 
-#if defined(amGHOST_BUILD_VULKAN) || defined(amGHOST_BUILD)  //Add this macro to Files that you wanna Use create_vulkan_surface
-  #include "vulkan/vulkan.h"    //Vulkan is PlatformAgnostic, so no This could be added by default
+/** define this macro yourself or for CMAKE/MESON, \see readme.md */
+#if defined(amGHOST_BUILD_VULKAN)
+  #include "vulkan/vulkan.h"
 #endif
-
-#include <cstddef>  //GCC NULL Error
 
 class amGHOST_Window
 {
  public:
-  // THESE SHOULD BE UPDATED as WINDOW Also Updates
-  amGHOST_Context *m_render_context = NULL;
-  const char *m_title;
+  amGHOST_Context *m_render_context = nullptr;  /** [WIP] */
+  const char *m_title = "NO_TITLE";
   int m_posX;
   int m_posY;
   int m_sizeX;
@@ -42,6 +40,13 @@ class amGHOST_Window
   virtual VkSurfaceKHR create_vulkan_surface(VkInstance instance) = 0;
 #endif
   virtual void activate_context(void) = 0;
+
+ protected:
+  amGHOST_Window(const amGHOST_Window&) = delete;             //Brendan's Solution
+  amGHOST_Window& operator=(const amGHOST_Window&) = delete;  //Brendan's Solution
+ protected:
+  amGHOST_Window() {}                                         //because of the line below.... there will be no default CONSTRUCTOR
+  virtual ~amGHOST_Window() = default;                        //-Wnon-virtual-dtor
 };
 
 #endif //#ifndef amGHOST_WINDOW

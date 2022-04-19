@@ -8,3 +8,6 @@ set(amGHOST_BUILD_TSuccess          ON  CACHE BOOL "" FORCE)
 #One of these Should be ON, or we cause Error   [You can have Both ON TOO]
 set(amGHOST_VULKAN_WindowSurface    ON  CACHE BOOL "" FORCE)
 set(amGHOST_BUILD_OPENGL            OFF CACHE BOOL "" FORCE)
+
+set(amGHOST_DEV                     OFF CACHE BOOL "" FORCE)
+set(amGHOST_V                       ON  CACHE BOOL "" FORCE)
