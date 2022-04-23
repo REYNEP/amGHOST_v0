@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 # Paths with SPACES Aren't Supported
 project(amGHOST_V0.1beta)  #Cmake Docs on this command says,  SubDirectory should have usually have its own project() too
 
-set(CMAKE_CXX_STANDARD 17)    #amVK_IN's Member variables [intern/amVK_IN.hh]
+set(CMAKE_CXX_STANDARD 17)          #static inline
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
@@ -169,8 +169,9 @@ set(SRC
 )
 
 set(INC
-  ./
-  intern/
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/intern/
+  ${PROJECT_SOURCE_DIR}/include/
 )
 
 set(INC_SYS

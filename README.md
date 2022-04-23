@@ -1,4 +1,4 @@
-<h2 align=center> amGHOSTV0.1 - from Blender's GHOST</h2>
+<h2 align=center> amGHOSTV0.1 - from Blender's GHOST [C++/C]</h2>
 
 ---
 
@@ -49,7 +49,8 @@ int main(void) {
 /** Yes, if you wanna do this... then you will have to build amGHOST from source */
 ```
 
-### Check `/tests/*.cpp` files for more examples   [e.h. EK_resize.cpp]
+> ### Check `/tests/*.cpp` files for more examples   [e.h. EK_resize.cpp]
+> ### C-API> [intern/amGHOST_Capi.hh](intern/amGHOST_Capi.hh)
 
 
 
