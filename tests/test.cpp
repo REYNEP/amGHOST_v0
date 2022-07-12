@@ -13,7 +13,7 @@ int main(void) {
   amGHOST_Window *wOne = amg_sys->create_window("TestWindowCPP", 0, 0, 1280, 720, true);
   wOne->openGL_create_context();  //Also Makes it current Context. use wOne->openGL_activate_context() for reactivating
 
-  amGHOST_EK *ekOne = amg_sys->add_eventKonsument(&amghost_event_proc);
+  amGHOST_EK *ekOne = amg_sys->add_EventKonsument(&amghost_event_proc);
 
   //Blender Standard MAIN LOOP (a.k.a EVENT LOOP)
   while(1) {

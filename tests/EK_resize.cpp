@@ -45,8 +45,8 @@ int EK(amGHOST_Event *event) {  /** EventKonsument */
 
 int main(void) {
     amGHOST_Window *wOne = amGHOST_SYS->create_window('TestTitle', 0, 0, 1280, 720);
-    amGHOST_SYS->add_eventKonsument(&EK);
-    amGHOST_SYS->add_eventKonsument(&windowResizeAgent);
+    amGHOST_SYS->add_EventKonsument(&EK);
+    amGHOST_SYS->add_EventKonsument(&windowResizeAgent);
 
     while(true) {
         amGHOST_SYS->process_events(true);

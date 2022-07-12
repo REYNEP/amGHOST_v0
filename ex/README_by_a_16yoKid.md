@@ -38,7 +38,7 @@ You can Try this CMakeLists.txt too
 
 2. Part II, Create an EK
 - Create an EKFunction a.k.a Event Consumer Function, [int EKFuncName(amGHOST_Event *evnt);] Inside of this Function DO Whatever you want to do Based on that INPUT EVENT
-- Add EK with amg_sys->add_eventKonsument(&EKFuncName); [MULTILE_EK_SUPPORTED]
+- Add EK with amg_sys->add_EventKonsument(&EKFuncName); [MULTILE_EK_SUPPORTED]
 - What is an EK? Event Konsument, Blender used to call it CallbackEventConsumer, and Konsument is Consumer, except for it's German version. 
 - EKs are the functions that will be called [passing the amGHOST_Event as Parameter] for every Event when you wil call amg_sys->dispatchEvents();
 

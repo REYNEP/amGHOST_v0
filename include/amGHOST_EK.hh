@@ -34,7 +34,7 @@ class amGHOST_EventKonsument
   }
 
   /**
-  * Sends Back the Function Pointer. Because in amGHOST_System.cpp inside of add_eventKonsument function EK->m_EK_proc wasn't working as m_EK_proc is protected member
+  * Sends Back the Function Pointer. Because in amGHOST_System.cpp inside of add_EventKonsument function EK->m_EK_proc wasn't working as m_EK_proc is protected member
   */
   inline amGHOST_EKProcPtr get_EKproc(void) {
     return m_EK;

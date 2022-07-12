@@ -1,8 +1,8 @@
 import subprocess
 import os
+import sys
 
 # Well, why make.py?   FASTEST thing I could think of.... and will work on ALL Platforms   + the syntax is WAY TOO COOL
-# Thanks to Threads that made the process so so fast....  https://stackoverflow.com/a/21406995.... https://stackoverflow.com/a/50255019.... https://stackoverflow.com/a/3131251.... https://stackoverflow.com/a/50670037
 
 # -------- We Need gdown to Downlad from GDrive --------
 try:
@@ -96,6 +96,6 @@ def get_submodules():
 #               ╹ ╹╹ ╹╹╹ ╹
 if __name__ == "__main__":
     check_get_components();
-    build_cmake();
-    
-    
+
+    if (input("Build amGHOST? (you don't gotta if you did `add_subdirectory(amGHOST)`) [Y/N]\n").lower() in [ 'y', 'yes']):
+        build_cmake();

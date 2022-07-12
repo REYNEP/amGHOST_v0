@@ -23,7 +23,52 @@
 
 
 
+# param 'REQUIRED': Doesn't depend on CMake 3.18....
+function(amGHOST_find_library
+  OutVar
+)
 
+  cmake_parse_arguments(
+    PARSE_ARGV 1                        # escapes 1st argument
+    PARAM                               # pREFIX
+    
+    "NO_DEFAULT_PATH;REQUIRED"          # Options, a.k.a BOOL
+    ""
+    #"ERROR_MSG;STATUS_MSG;FIXING_MSG"  # 1-Value
+    "NAMES;PATHS;PATH_SUFFIXES"         # Multiple Values....
+  )
+
+  set(_NO_DEFAULT_PATH_)
+  set(_REQUIRED_)
+
+  if (${PARAM_NO_DEFAULT_PATH})
+    set(_NO_DEFAULT_PATH_ "NO_DEFAULT_PATH")
+  endif()
+
+  find_library(_temp_
+    NAMES
+      ${PARAM_NAMES}
+    PATHS
+      ${PARAM_PATHS}
+    PATH_SUFFIXES
+      ${PARAM_PATH_SUFFIXES}
+    ${_NO_DEFAULT_PATH_}
+  )
+
+  if (NOT EXISTS ${_temp_})
+    message(NOTICE)
+    message(STATUS "[amGHOST] Can't find '${PARAM_NAMES}' in ${PARAM_PATHS}\n")
+
+    if (${PARAM_REQUIRED})
+      unset(_temp_ CACHE)
+      message(FATAL_ERROR)
+    endif()
+  endif()
+
+  set(${OutVar} ${_temp_} PARENT_SCOPE)
+  unset(_temp_ CACHE)
+
+endfunction()
 
 
 
@@ -65,12 +110,14 @@ endfunction()
 
 
 
-
+# MODIFIED by REYNEP
 # Nicer makefiles with -I/1/foo/ instead of -I/1/2/3/../../foo/
 # use it instead of include_directories()
 function(blender_include_dirs
+  name
   includes
-  )
+  _P
+)
 
   set(_ALL_INCS "")
   foreach(_INC ${ARGV})
@@ -81,23 +128,28 @@ function(blender_include_dirs
     #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
     # endif()
   endforeach()
-  include_directories(${_ALL_INCS})
+  target_include_directories(${name} ${_ALL_INCS} ${_P})
+
 endfunction()
 
 # Using this one would not Show Warnings from files that are inside those SYSTEM_INCLUDE_DIRECTORIES
 function(blender_include_dirs_sys
+  name
   includes
-  )
+  _P
+)
 
   set(_ALL_INCS "")
   foreach(_INC ${ARGV})
     get_filename_component(_ABS_INC ${_INC} ABSOLUTE)
     list(APPEND _ALL_INCS ${_ABS_INC})
+    # for checking for invalid includes, disable for regular use
     # if(NOT EXISTS "${_ABS_INC}/")
     #   message(FATAL_ERROR "Include not found: ${_ABS_INC}/")
     # endif()
   endforeach()
-  include_directories(SYSTEM ${_ALL_INCS})
+  target_include_directories(${name} SYSTEM ${_ALL_INCS} ${_P})
+
 endfunction()
 
 
@@ -194,7 +246,6 @@ function(blender_add_lib__impl
 
   # include_directories(${includes})
   # include_directories(SYSTEM ${includes_sys})
-  blender_include_dirs("${includes}")
   blender_include_dirs_sys("${includes_sys}")
 
   add_library(${name} ${sources})

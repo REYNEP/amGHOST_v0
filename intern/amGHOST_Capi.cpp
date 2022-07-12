@@ -60,7 +60,7 @@ void amGHOST_DisposeSystem(void) {
 * Solution:
 * _EK_Workaround_() is a Function which will be used to mimic the Behaviour of a standard amGHSOT_EkProcPtr type of Function
 * if user creates multiple C-API EKs, We EXPLICITLY create multiple amGHOST_EventKonsument Objects with that same _EK_Workaround_ function and push_back to Heart's T_EKVec
-* You might notice that in amGHOST_System::add_eventKonsument, we didn't allow creation of Multiple EKs with same EKFunc.... and you might ask why is this then breaking the habit?
+* You might notice that in amGHOST_System::add_EventKonsument, we didn't allow creation of Multiple EKs with same EKFunc.... and you might ask why is this then breaking the habit?
 * I Assure this does not. Because we also have a _EKVec_Capi_ vector here. which contains all the C-API Functions. & before push_backing to Heart's T_EKVec, we do check if that function already exists
 */
 static std::vector<amGHOST_EKProcPtr_Capi> _EKProcVec_Capi_ {};

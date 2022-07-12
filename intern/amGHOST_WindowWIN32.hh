@@ -1,6 +1,3 @@
-#if defined(amGHOST_BUILD_VULKAN) & defined(amGHOST_WindowWIN32_CPP)
-  #define VK_USE_PLATFORM_WIN32_KHR
-#endif
 #ifndef amGHOST_WINDOW
   #include "amGHOST_Window.hh"
 #endif
@@ -16,33 +13,35 @@ class amGHOST_WindowWIN32 : public amGHOST_Window
  public:
   HWND m_hwnd = NULL;
   /**
-  * CONSTRUCTOR
-  */
-  amGHOST_WindowWIN32(char *title, int posX, int posY, int sizeX, int sizeY);
+   * CONSTRUCTOR
+   */
+  amGHOST_WindowWIN32(const char *title, int posX, int posY, int sizeX, int sizeY);
 
   bool destroyer(void);
   /**
-  * DESTRUCTOR
-  */
+   * DESTRUCTOR
+   */
   ~amGHOST_WindowWIN32() {};
 
 
   /**
-  * These Literally Does what these says in the Name....
-  */
+   * These Literally Does what these says in the Name....
+   */
   void show_window(void);
   void hide_window(void);
 
   /**
-  OPENGL SECTION [WGL]
-  */
+   * OPENGL SECTION [WGL]
+   */
   amGHOST_Context* opengl_create_context(void);
-  void activate_context(void);
+  void           opengl_activate_context(void);
 
   /**
-    VULKAN SECTION
-  */
-#if defined(amGHOST_BUILD_VULKAN) || defined(amGHOST_VULKAN)
-  VkSurfaceKHR create_vulkan_surface(VkInstance instance);
+   * VULKAN SECTION
+   */
+#if defined(amGHOST_BUILD_VULKAN)
+  VkSurfaceKHR create_vulkan_surface(VkInstance instance) {
+
+  }
 #endif
 };

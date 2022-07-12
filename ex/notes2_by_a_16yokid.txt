@@ -78,7 +78,7 @@ PARTED WORKFLOW [C++]
   - set a var [amGHOST_System *] to whatever get_system returns
 - Use that Var to call other functions.
   - [Note:] As var is a pointer [amGHOST_System *], you will need to only do [var->create_window()] and such
-- Create and EK with add_eventKonsument() [see amGHOST_System.cpp for ref] 
+- Create and EK with add_EventKonsument() [see amGHOST_System.cpp for ref] 
   - Obviously you need to have your Proc made before that. [Proc = a function which will be invoked for every incoming events, remember, call dispose_events()]
 - MAIN LOOP
   - process_events(); [This turns the Platform specific Events to amGHOST_Events and saves them in an std::deque]

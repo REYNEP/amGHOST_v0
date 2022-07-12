@@ -45,18 +45,20 @@ bool amGHOST_SystemWIN32::opengl_load(void) {
 
 
 
-amGHOST_Window* amGHOST_SystemWIN32::create_window(char *title, int posX, int posY, int sizeX, int sizeY, bool instantShow) {
-  amGHOST_WindowWIN32 *newCreatedWindow = new amGHOST_WindowWIN32(title, posX, posY, sizeX, sizeY);
-  if (!newCreatedWindow->m_hwnd) {  //ERROR Checking
-    newCreatedWindow->destroyer();
+amGHOST_Window* amGHOST_SystemWIN32::create_window(const char *title, int posX, int posY, int sizeX, int sizeY, bool instantShow) {
+  amGHOST_WindowWIN32 *REY = new amGHOST_WindowWIN32(title, posX, posY, sizeX, sizeY);
+  if (!REY->m_hwnd) {  //ERROR Checking
+    REY->destroyer();
     return nullptr;
   }
   else {
-    if (instantShow) {newCreatedWindow->show_window();}
-    amVK_ArrayDYN_PUSH_BACK(T_WindowVec) = (amGHOST_Window *) newCreatedWindow;
+    if (instantShow) {REY->show_window();}
+
+    if (T_WindowVec.should_resize()) {T_WindowVec.resize();}
+    amVK_ArrayDYN_PUSH_BACK(T_WindowVec) = (amGHOST_Window *) REY;
   }
 
-  return (amGHOST_Window *) newCreatedWindow;
+  return (amGHOST_Window *) REY;
 }
 
 bool amGHOST_SystemWIN32::destroy_window(amGHOST_Window* window) {
@@ -304,7 +306,7 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
       break;
     case WM_SIZE:
       *event = amGHOST_Event(amGHOST_kWindowResized, event_win, amGHOST_kKeyUnknown);
-      amVK_LOG("WM_SIZE got");
+      _LOG("WM_SIZE got");
       break;
 
     /* ----------------------------------------------------------------

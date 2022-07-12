@@ -1,3 +1,15 @@
+/**
+ *        WGL 
+ * also called WIGGLE
+ * 
+ * is an API between OpenGL and the windowing system interface of Windows. 
+ * an interface between rendering APIs, e.g. OpenCL, OpenGL, GL-ES or OpenVG and the native platform.
+ * 
+ * WIKI: https://en.wikipedia.org/wiki/WGL_(API)
+ * TODO: USE GLUT? or better way for GL Types.... that are down below
+ */
+
+
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h> //Need: <sdkddkver.h>, <winresrc.h>, "WinDef.h" [HWND m_hwnd; HDC m_hdc; HGLRC m_hglrc] "wingdi.h" [PIXELFORMATDESCRIPTOR m_pfd]
 

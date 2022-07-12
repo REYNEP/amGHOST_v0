@@ -1,6 +1,7 @@
 #pragma once
 #ifndef amGHOST_V
 #define amGHOST_V
+/** V: Valerie [October 12, 2049] */
 
 /** CMAKE / MESON option */
 #ifndef amGHOST_V_DISABLED
@@ -20,12 +21,14 @@
     amGHOST_System *amGHOST_X = amGHOST_init();
 
     #define amGHOST_SYS    amGHOST_X
+    #define amG_SYS        amGHOST_X
 
 #else
 
     /** This used to be static.... */
     extern amGHOST_System *amGHOST_X;
     #define amGHOST_SYS    amGHOST_X
+    #define amG_SYS        amGHOST_X
     
 #endif
 

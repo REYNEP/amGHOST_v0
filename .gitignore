@@ -6,3 +6,6 @@ meson_build
 
 /extern
 lib-amGHOST.lib
+lib-amGHOST.a
+*.lib
+*.a

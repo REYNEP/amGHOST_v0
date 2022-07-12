@@ -7,80 +7,82 @@
 #include "amGHOST_V.hh"
 
 int EK(amGHOST_Event *event) {  /** EventKonsument */
-    if (event.m_type == amGHOST_kWindowClose) {
+    if (event->m_type == amGHOST_kWindowClose) {
         return -1;
     }
     return 0;
 }
 
 int main(void) {
-    amGHOST_Window *wOne = amg_sys->create_window('TestTitle', 0, 0, 1280, 720);
-    amg_sys->add_eventKonsument(&EK);
+    // amG_SYS is a macro defined in amGHOST_V.hh
+    amGHOST_Window *wOne = amG_SYS->create_window('TestTitle', 0, 0, 1280, 720);
+    amG_SYS->add_EventKonsument(&EK);
 
     while(true) {
-        amg_sys->process_events(true);
-        if (amg_sys->dispatch_events() == -1) {     // Dispatches to EventKonsuments (EK)
+        amG_SYS->process_events(true);
+        if (amG_SYS->dispatch_events() == -1) {     // Dispatches to EventKonsuments (EK)
             break;
             /** 
              * this means, one of UR EK's returned -1, processing an event.... 
-             * that event is still there, but at `amg_sys->_EventQ.data[0]`   (index 0)
+             * that event is still there, but at `amG_SYS->_EventQ.data[0]`   (index 0)
              * 
              * you should process the next events carefully
-             * amg_sys->_EventQ   is  [PUBLIC]
+             * amG_SYS->_EventQ   is  [PUBLIC]
              */
         }
     }
 
     /** delete wOne, won't work. */
-    amg_sys->destroy_window(wOne);
+    amG_SYS->destroy_window(wOne);
 }
 ```
 
 
-### instead of `#include "amGHOST_V.hh"`    [NOTE: turn off cmake `amGHOST_V` option]
+### instead of `#include "amGHOST_V.hh"`    [NOTE: You GOTTA turn off cmake `amGHOST_V` option]
 ```cpp
 #include "amGHOST_System.hh"
 
     amGHOST_System::create_system();
-    amGHOST_System *amg_sys = amGHOST_System::get_system();
-/** amGHOST_System *amg_sys = amGHOST_System::heart;     Works OK */
+    amGHOST_System *amG_SYS = amGHOST_System::get_system();
+/** amGHOST_System *amG_SYS = amGHOST_System::heart;     Works OK */
 /** Its okay to call outside main, in global Space */
 
 /** Yes, if you wanna do this... then you will have to build amGHOST from source */
 ```
 
+
 > ### Check `/tests/*.cpp` files for more examples   [e.h. EK_resize.cpp]
-> ### C-API> [intern/amGHOST_Capi.hh](intern/amGHOST_Capi.hh)
-
-
-
 
 ---
 ##
 
-</br>
-
-
-
+## Build
+- `python make.py`  - That downloads 'extern' folder from [GoogleDrive](https://drive.google.com/file/d/1pGGfm0yh6bExzQlu3Da4-NJP86m6r_3s/)
+    - ***GLEW*** [with CMakeLists.txt]
+    - ***Vulkan-Sdk-Lunarg*** [Headers + Vulkan-Loader lib (`lib-vulkan.so vulkan.lib`]
+- You can make UR own copies of [amGHOST_Options.cmake](build_files/amGHOST_Options.cmake) & [amGHOST_Variables.cmake](build_files/amGHOST_Variables.cmake) </br> 
+    - do `list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/path/to/<Options/Variables.cmake>)` before `add_subdirectory(amGHOST)`
+- CMake: `add_subdirectory(amGHOST)     target_link_libraries(re lib-amGHOST)`  [DOCS in [CMakeLists.txt](CMakeLists.txt)]
+- MESON: `sp = subproject('amGHOST')    amGHOST_defs = sp.get_variable('def')`  [DOCS in [meson.build](meson.build)]
 
 ## Macros & Features
 `amGHOST_BUILD_VULKAN`:
 - **Option:** `amGHOST_VULKAN_WindowSurface` [cmake, meson]
-- **CMAKE:** `add_submodule(amGHOST)    target_link_libraries(UR_EXE PUBLIC lib-amGHOST)`,   include_dirs & defs will automatically be taken care of
-- **MESON:** `sp = subproject('amGHOST')    amGHOST_defs = sp.get_variable('def')`      [so the support is partly for now....]
-- **Default:** `#define amGHOST_BUILD_VULKAN` before `#include "amGHOST_System.hh"`
 - **FILES:** `amGHOST_Window.hh`
 
-## Build
-#### `python make.py`  - That downloads 'extern' folder from [GoogleDrive](https://drive.google.com/file/d/1pGGfm0yh6bExzQlu3Da4-NJP86m6r_3s/)
+## SMTH IN THE WAY
+`amGHOST_System`:
+* You can't just instantiate an `amGHOST_System` Object, cz this class contains *Pure-Virtual* funcs (a.k.a This is called an Abstract Class)
+* You have to call `amGHOST_System::create_system();`
+* And at the end of the program `amGHOST_System::dispose_system()` is preferred to be called or MEMORY Will be leaked
+* 1 System could have multiple rendering Contexts. Maybe even multiple Graphics APIs (OpenGL/VULKAN/DX12)
 
 ## ACKNOWLEDGEMENT
-All thanks to Blender and Blender's GHOST, really.... This is an Complement re-write of that. 
+Thanks to Blender, mainly Blender's GHOST, really.... This is an Complete re-write of that. 
 They have a Lot of Helping Docs in their code.... and It was all possible because Blender is again... OPEN-SOURCE as Always
 
 ## LICENSE
-amGHOST is licensed under GNU GPL 3.0
-See license.txt
+amGHOST is licensed under BOOST LICENSE
 
 </br></br>
 
