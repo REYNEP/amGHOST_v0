@@ -17,22 +17,25 @@
 # The Original Code is Copyright (C) 2021, REYNEP
 #
 # ***** END GPL LICENSE BLOCK *****
+#
 
-
-
-cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 project(amGHOST_V0.1beta)
 
-set(CMAKE_CXX_STANDARD 17)                            # static inline
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  if (NOT (${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR}))
+    message(NOTICE "\nadd_subdirectory: amGHOST")
+  endif()
 
-# ON UNIX, Terminal Output with Colors....
-if     (CMAKE_CXX_COMPILER_ID   STREQUAL   "GNU")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
-elseif (CMAKE_CXX_COMPILER_ID   STREQUAL   "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
-endif()
+  set(CMAKE_CXX_STANDARD 17)                            # static inline
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+  # ON UNIX, Terminal Output with Colors....
+  if     (CMAKE_CXX_COMPILER_ID   STREQUAL   "GNU")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fdiagnostics-color=always")
+  elseif (CMAKE_CXX_COMPILER_ID   STREQUAL   "Clang")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fcolor-diagnostics")
+  endif()
 
 
 #[[=======================================================================================================
@@ -83,7 +86,7 @@ option(amGHOST_VULKAN_WindowSurface   "Window Surface is Platform Specific.... a
 option(amGHOST_BUILD_OPENGL           "OpenGL Support [amGHSOT_ContextWGL/GLX/EGL.cpp will be Compiled and Linked] glew.h will be included" ON)
 
 # For now this doesn't work... we gotta remove this along with improving logger....
-option(amGHOST_DEV                    "Enables some logging stuffs" OFF)
+option(amGHOST_DEV                    "Enables some logging stuffs, only DEFINES amVK_LOG_DEV macro.... thats all." OFF)
 
 option(amGHOST_V                      "add def amGHOST_V_DISABLED if off" ON)
 
@@ -122,16 +125,20 @@ option(amGHOST_V                      "add def amGHOST_V_DISABLED if off" ON)
   set(_all_modules_found TRUE)
   message(NOTICE "") #Just a Newline
 
-  message(NOTICE "amGHOST CMake modules:- ") #Just a Newline
+  message(NOTICE "amGHOST CMake modules:- ")
+  list(APPEND CMAKE_MESSAGE_INDENT "-- ")
   foreach (_M ${MODULES})
     list(POP_FRONT MODULE_NAMES _M_NAME)
     if (_M)
-      message(STATUS "Using: " ${_M})
+      message(NOTICE "Using: " ${_M})
     else()
       set(_all_modules_found FALSE)
-      message(STATUS "[NOTFOUND]: " ${_M_NAME})
+      message(NOTICE "[NOTFOUND]: " ${_M_NAME})
     endif()
   endforeach()
+  set(CMAKE_MESSAGE_INDENT "")
+  message(NOTICE "")
+
   unset(MODULE_NAMES)
   if (NOT _all_modules_found)
     message(STATUS "Did you move any files from 'build_files'?   [Listed above]")
@@ -209,12 +216,16 @@ endif()
 set(SRC
   intern/amGHOST_System.cpp
   intern/amGHOST_V.cpp
+
+  # 😄
+  include/amGHOST_Decode.hh
 )
 
 set(INC
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/intern/
   ${PROJECT_SOURCE_DIR}/include/
+  ${PROJECT_SOURCE_DIR}/extern/wuffs/
 )
 
 set(INC_SYS
@@ -358,6 +369,9 @@ target_compile_definitions(lib-amGHOST  PUBLIC  ${DEF})
 target_link_libraries(     lib-amGHOST  PRIVATE ${LIB})
 
 set_target_properties(     lib-amGHOST  PROPERTIES  OUTPUT_NAME "lib-amGHOST"  PREFIX "")
+
+
+# install ------------
 install(TARGETS lib-amGHOST
         DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
 

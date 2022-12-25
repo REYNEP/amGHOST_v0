@@ -43,6 +43,7 @@ void amGHOST_System::dispose_system(void) {
   for (uint32_t i = 0, n = T_WindowVec.neXt; i < n; i++) {
     T_WindowVec.data[i]->destroyer();
   }
+  /** TODO: empty T_WindowVec & ZERO-INIT */
   
   if (heart) {
     delete heart;

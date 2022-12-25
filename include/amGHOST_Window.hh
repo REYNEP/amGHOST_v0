@@ -9,10 +9,17 @@
   #include "amGHOST_Context.hh"
 #endif
 
-/** define this macro yourself or for CMAKE/MESON, \see readme.md */
+/** for CMAKE/MESON, \see readme.md, or if you are using smth else, be sure to declare this yourself */
 #if defined(amGHOST_BUILD_VULKAN)
-  #include "vulkan/vulkan.h"
+  #if defined(_amGHOST_INC_VULKAN_)
+    #include "vulkan/vulkan.h"
+  #else
+    typedef struct VkSurfaceKHR_T* VkSurfaceKHR;
+    typedef struct VkInstance_T* VkInstance;
+  #endif
 #endif
+
+
 
 class amGHOST_Window
 {
@@ -59,7 +66,21 @@ class amGHOST_Window
   virtual void hide_window(void) = 0;
 
   /** TAGS: change title, window name, Top Menu Bar Text, Window Title, \todo impliment in all SYS and make ABSOLUTE VIRTUAL */
-  virtual void set_title(const char *title) {};
+  virtual void set_title(const char *title) {}
+
+
+  /**
+   *   ╻ ╻   ┏━┓╻  ┏━┓╺┳╸┏━╸┏━┓┏━┓┏┳┓   ┏━┓┏━┓┏━╸┏━╸╻┏━╸╻┏━╸
+   *   ╺╋╸   ┣━┛┃  ┣━┫ ┃ ┣╸ ┃ ┃┣┳┛┃┃┃   ┗━┓┣━┛┣╸ ┃  ┃┣╸ ┃┃  
+   *   ╹ ╹   ╹  ┗━╸╹ ╹ ╹ ╹  ┗━┛╹┗╸╹ ╹   ┗━┛╹  ┗━╸┗━╸╹╹  ╹┗━╸
+   */
+
+  /** XCB: PLATFORM_SPECIFIC, you must check the docs there.... [ inside amGHOST_WindowXCB.hh ] */
+  virtual void set_wm_class(const char *wm_class, bool i_know_the_docs = false) {}
+  /** TODO: virtual void set_ewmh_window_type(uint32_t TYPE) {} */
+  /** TODO:              XCB_ICCCM_WM_HINT_ICON_PIXMAP          */
+  /** TODO:                _NET_WM_STATE_FULLSCREEN             */
+  /** TODO:               xcb_icccm_set_wm_size_hints           */
 
 
 

@@ -32,7 +32,8 @@ class amGHOST_Event
   /** Intoduce furthur Pointers into extended data, like GraphicsTablet */
   union TEventData {
     amGHOST_TKey key[2];          // 2nd one is dummy
-    amGHOST_MiceInput mouse[2];   // 2nd one is dummy
+    amGHOST_TMiceInput mouse[2];   // 2nd one is dummy
+    amGHOST_TOSEvent osEvent[2];   // 2nd one is dummy
     amGHOST_TMicePos mousePos;
   } m_data;
 
@@ -44,6 +45,7 @@ class amGHOST_Event
   amGHOST_Event() {}
   amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TKey key)          : m_type(type), m_win(win) { m_data.key[0] = key; }
   amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_MiceInput mouseIN) : m_type(type), m_win(win) { m_data.mouse[0] = mouseIN; }
+  amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_OSEvent osEvent)   : m_type(type), m_win(win) { m_data.osEvent[0] = osEvent; }
   amGHOST_Event(amGHOST_TEventType type, amGHOST_Window* win, amGHOST_TMicePos mousePos) : m_type(type), m_win(win) { m_data.mousePos = mousePos; }
 
   ~amGHOST_Event() {}

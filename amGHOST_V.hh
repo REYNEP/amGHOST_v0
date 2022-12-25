@@ -10,7 +10,7 @@
 #include "amGHOST_System.hh"
 
 /** \see amGHOST_System.cpp */
-#ifdef amGHOST_V_IMPLIMENTATION
+#ifdef amGHOST_V_IMPLEMENTATION
 
     static inline amGHOST_System *amGHOST_init(void) {
         if (amGHOST_System::heart == nullptr) {

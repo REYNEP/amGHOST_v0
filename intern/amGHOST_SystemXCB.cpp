@@ -1,5 +1,8 @@
+#define VK_USE_PLATFORM_XCB_KHR
+#define _amGHOST_INC_VULKAN_
 #include "amGHOST_SystemXCB.hh"
 #include "amGHOST_WindowXCB.hh"
+#include <unistd.h>
 
 /** 
  * _NET_WM_NAME:     a member var    of    xcb_ewmh_connection_t
@@ -24,10 +27,10 @@
  * EWMH = amGHOST_SystemXCB::EWMH
  */
 
-#include "string.h"
+
 xcb_atom_t amGHOST_SystemXCB::get_atom(const char *atom_name) {
     xcb_generic_error_t *RES = nullptr;
-    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(XC, xcb_intern_atom(XC, true, strlen(atom_name), atom_name), &RES);
+    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(XC, xcb_intern_atom(XC, true, _amGHOST_strlen(atom_name), atom_name), &RES);
 
     if (  RES != nullptr) amGHOST_xcb_error(RES);
     if (reply == nullptr) return XCB_ATOM_NONE;
@@ -38,6 +41,10 @@ xcb_atom_t amGHOST_SystemXCB::get_atom(const char *atom_name) {
     if (atom == XCB_ATOM_NONE) {
         _LOG("atom '" << atom_name << "' not found");
     }
+
+#if amGHOST_ATOM_INSPECT
+    _LOG("atom '" << atom_name << "':- " << atom);
+#endif
 
     free(reply);
     return atom;
@@ -61,7 +68,7 @@ const char *amGHOST_xcb_conn_error(int RES) {
     switch(RES)
     {
         case(XCB_CONN_ERROR):
-            return "xcb connection errors because of socket, pipe and other stream errors.";
+            return "[XCB_CONN_ERROR]:- xcb connection errors because of socket, pipe and other stream errors.";
         case(XCB_CONN_CLOSED_EXT_NOTSUPPORTED):
             return "xcb connection shutdown because of extension not supported";
         case(XCB_CONN_CLOSED_MEM_INSUFFICIENT):
@@ -101,9 +108,14 @@ bool amGHOST_xcb_error(xcb_generic_error_t *RES) {
             "       uint16_t : " << RES->minor_code << "\n" <<
             "     major_code : " << xcb_errors_get_name_for_major_code(X->XE, RES->major_code) << "\n" <<
             "        uint8_t : " << RES->major_code << "\n" <<
+
+            /**
             "  pad0  uint8_t : " << RES->pad0 << "\n" <<
             "pad[5] uint32_t : " << RES->pad[0] << "\n" <<
             "  full_sequence : " << RES->full_sequence<< "\n" <<
+
+             * \see the docs inside _process_event()
+             */
             "\n"
         );
         return true;
@@ -190,13 +202,180 @@ bool amGHOST_SystemXCB::destroy_window(amGHOST_Window* window) {
     return false;
 }
 
-#include <unistd.h>
-bool amGHOST_SystemXCB::process_events(bool waitForEvent) {
-    sleep(1);
-    return true;
+VkSurfaceKHR amGHOST_WindowXCB::create_vulkan_surface(VkInstance instance) {
+    amGHOST_SystemXCB *X = (amGHOST_SystemXCB *) amGHOST_System::heart;
+
+    VkXcbSurfaceCreateInfoKHR the_info = {
+        VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR, nullptr,
+        0,  X->XC, XW
+    };
+
+    VkSurfaceKHR surface = nullptr;
+    VkResult res = vkCreateXcbSurfaceKHR(instance, &the_info, nullptr, &surface);
+
+    if (res != VK_SUCCESS) {amVK_LOG_EX("vkCreateXcbSurfaceKHR() Error: \n" << amVK_Utils::vulkan_result_msg(res)); return nullptr;}
+    return surface;
 }
+
 bool amGHOST_SystemXCB::opengl_load(void) {
     amVK_LOG("WIP OPENGL"); return false;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+bool amGHOST_SystemXCB::process_events(bool waitForEvent) {
+    xcb_generic_event_t *event = nullptr;
+
+    if(waitForEvent) 
+        event = xcb_wait_for_event(XC);
+    else 
+        event = xcb_poll_for_event(XC);
+
+    if (!event) {
+        if (_XC_ERRATUM_(false)) {_send_xcb_lost_event_(); return true;}
+        else return false;
+    }
+
+    while(event) {
+        _process_event(event);
+        event = xcb_poll_for_event(XC);
+    }
+    /** event == nullptr, from poll_for_event, may also mean IO Error. TODO: handle that */
+
+    return true;
+}
+
+bool amGHOST_SystemXCB::_process_event(xcb_generic_event_t *EVE) {
+    
+    amVK_LOG(
+        "\n" <<
+        "[XCB EVENT] \n" <<
+        "  response_type : " << xcb_errors_get_name_for_core_event(XE, EVE->response_type, nullptr) << "\n" <<
+        "        uint8_t : " << EVE->response_type << "\n" <<
+        "     event_name : " << xcb_errors_get_name_for_xcb_event(XE, EVE, nullptr) << "\n" <<
+        "       sequence : " << EVE->sequence << "\n" <<
+        "\n" <<
+        "  pad0  uint8_t : " << EVE->pad0 << "\n" <<
+        "pad[5] uint32_t : " << EVE->pad[0] << "\n" <<
+        "  full_sequence : " << EVE->full_sequence<< "\n" <<
+        "\n"
+    );
+
+    /**
+     * Sometimes you will seee PADDINGs in xcb_generic_event_t or xcb_generic_error_t....
+     * these paddings are sole-ly there because, it can be converted to other event types in xcb....
+     *      cz of compatibility
+     *      so that we can do the type-casting....
+     *   \see xcb_button_press_event_t, xcb_key_press_event_t,
+     * 
+     *   response_type:
+     *      CONNECTED to PREPROCESSOR DEFS like XCB_KEY_PRESS
+     *      the way to determine the type of the event
+     * 
+     *   full_sequence:
+     *      For XGE events, we insert an extra "uint32_t full_sequence" field 
+     *          immediately after the first 32 bytes of data.
+     *          REF: https://github.com/svn2github/midnightbsd-mports/blob/bc6e2ef3d60d29404c156c3eb6e83f2fd07d43fe/trunk/x11/libxcb/files/patch-64bit-packed#L9
+     *           OG: https://cgit.freedesktop.org/xcb/libxcb/commit/?id=3b72a2c9d1d656c74c691a45689e1d637f669e3a
+     */
+
+    int x = sizeof(xcb_generic_event_t);
+
+    amGHOST_Event *event = _get_nextSpot();  /** GET NEXT EVENT SPOT, RESIZE EVENT_Q if needed */
+    switch (EVE->response_type)
+    {
+        case XCB_EXPOSE: {
+            xcb_expose_event_t *exposed = (xcb_expose_event_t *)EVE;
+        }
+        case XCB_BUTTON_PRESS: {
+            xcb_button_press_event_t *button_down = (xcb_button_press_event_t *)EVE;
+        }
+        case XCB_KEY_PRESS: {
+            xcb_key_press_event_t *key_down = (xcb_key_press_event_t *)EVE;
+        }
+        case XCB_CLIENT_MESSAGE: {
+            xcb_client_message_event_t *msg = (xcb_client_message_event_t *)EVE;
+            if (msg->data.data32[0] == get_atom("WM_DELETE_WINDOW")) {
+                *event = amGHOST_Event(amGHOST_kWindowClose, get_window(msg->window), amGHOST_kKeyUnknown);
+            }
+        }
+    }
+}
+/**
+ * EVENTS: TODO:
+ * We haven't really added support for any kinda windows... And honestly I don't even know where to start...
+ *   
+ *   - XCB_CLIENT_MESSAGE: a Major Point....
+ *   - Where are WM_DELETE_WINDOW defined...
+ *   - Seems like I missed a lotta ICCCM & EWMH ATOMS... but those were not *DEFINED*
+ *   - Check the *DUSK* EWMH docs at the top of the page....
+ *   - IMPL: all the EVENT_TYPEs that there is *seriallly*.... around those XCB_BUTTON_PRESS, XCB_EXPOSE, XCB_CLIENT_MESSAGE
+ *   - check [xcb_event_mask_t], that we pass to window
+ *   - CHECK WM_PROTOCALS
+ *   - https://stackoverflow.com/questions/69197575/how-to-handle-xcb-client-messages-properly
+ *   - https://github.com/baskerville/bspwm/issues/1286
+ */
+
+amGHOST_Window *amGHOST_SystemXCB::get_window(xcb_window_t XW) {
+  for (uint32_t i = 0, n = T_WindowVec.neXt; i < n; i++) {
+    amGHOST_WindowXCB *window = (amGHOST_WindowXCB *) T_WindowVec.data[i];
+    if (window->XW == XW) {
+      return window;
+    }
+  }
+  return nullptr;
+}
+
+void amGHOST_SystemXCB::_send_xcb_lost_event_(void) {
+    /** don't wanna keep printing multiple times... ppl should handle this error at first */
+    if (_sent_xcb_lost_event_)
+        return;
+
+    for (int i = 0; i < T_WindowVec.neXt; i++) {
+        amGHOST_Event *event = _get_nextSpot();
+        *event = amGHOST_Event(amGHOST_kLostSystem, T_WindowVec.data[i], amGHOST_kLostSystemXCB);
+    }
+    _sent_xcb_lost_event_ = true;
+    _XC_ERRATUM_();
+    amVK_LOG_EX("xcb_wait_for_event(): IO Error");
+}
+
+bool amGHOST_SystemXCB::handled_LostSystem(void) {
+    if (!_XC_ERRATUM_(false)) {
+        _sent_xcb_lost_event_ = false;
+        return true;
+    }
+    else return false;
 }
 
 
@@ -391,6 +570,16 @@ bool amGHOST_SystemXCB::opengl_load(void) {
  * 
  * EXAMPLES FROM THE INTERNET:
  *    https://stackoverflow.com/questions/59756680/how-to-display-xcb-windows-name-in-gnomes-alt-tab-view
+ */
+
+/**
+ * RUST WM_CLASS : https://github.com/rust-windowing/winit/blob/master/src/platform_impl/linux/x11/window.rs#L312
+ * 
+ *      https://github.com/Ax9D/pw-viz/blob/main/src/ui/mod.rs#L8
+ *      https://github.com/emilk/egui/blob/935913b1ec5fb95c468fde60a107daf4ac164a9e/eframe/src/native/run.rs#L62
+ *      https://github.com/emilk/egui/blob/317436c0570dde617fb408d6c9a973c5dd0a2fc4/eframe/src/native/epi_integration.rs#L55
+ * 
+ *      that was calling winit... WindowBuilder.... so we went to check winit
  */
 
 

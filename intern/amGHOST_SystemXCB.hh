@@ -5,6 +5,9 @@
 #include <xcb/xcb_errors.h>     /** libxcb-errors */
 #include <xcb/xcb_ewmh.h>       /** libxcb-ewmh   */
 
+/**  also requires amGHOST_DEV (option) to be ON  */
+#define amGHOST_ATOM_INSPECT 0
+
 bool amGHOST_xcb_error(xcb_generic_error_t *RES);
 const char *amGHOST_xcb_conn_error(int RES);
 
@@ -13,11 +16,15 @@ class amGHOST_SystemXCB : public amGHOST_System
 {
    public:
     amGHOST_SystemXCB(void) {
-         XC = xcb_connect(NULL, &SC);    /** ---- DISPLAY env is used, cz param NULL ---- */
-        _XC_ERRATUM_();                 /** Error Checking */ 
+        XC = xcb_connect(NULL, &SC);    /** ---- DISPLAY env is used, cz param NULL ---- */
 
-         XS = xcb_setup_roots_iterator(xcb_get_setup(XC)).data;
-         XW = XS->root;
+        if (_XC_ERRATUM_()) { amVK_LOG_EX("xcb_connect() error, couldn't create a connection to xcb.");
+             xcb_disconnect(XC); 
+             XC = nullptr;
+        }
+
+        XS = xcb_setup_roots_iterator(xcb_get_setup(XC)).data;
+        XW = XS->root;
 
 
         /** ----- XE ----- */
@@ -35,14 +42,14 @@ class amGHOST_SystemXCB : public amGHOST_System
     }
     
    private:
-    void _XC_ERRATUM_(void) {
+    /** \return true if ERROR [an amVK_LOG is printed, you should print your own amVK_LOG_EX afterwards....]*/
+    bool _XC_ERRATUM_(bool print_err = true) {
         int res = xcb_connection_has_error(XC);
         if (res != 0) {
-            amVK_LOG_EX("xcb_connect() error:- " << amGHOST_xcb_conn_error(res))
-            xcb_disconnect(XC); 
-            XC = nullptr;
-            return;
+            if (print_err) {amVK_LOG("XCB_CONNECTION error:- \n    - " << amGHOST_xcb_conn_error(res));}
+            return true;
         }
+        else return false;
     }
 
     void _XE_ERRATUM_(void) {
@@ -88,7 +95,7 @@ class amGHOST_SystemXCB : public amGHOST_System
     /** U CN MODIFY These. */
    public:
     uint16_t window_border_width = 0;       /** changable... \todo how, i forgot 😅 */
-
+    char *wm_class = nullptr;               /** \see amGHOST_WindowXCB::set_wm_class() */
 
 
 
@@ -118,4 +125,19 @@ class amGHOST_SystemXCB : public amGHOST_System
     bool destroy_window(amGHOST_Window* window);
     bool process_events(bool waitForEvent);
     bool opengl_load(void);
+
+    /**
+     * CALLED by process_events
+     */
+    bool _process_event(xcb_generic_event_t *EVE);
+    amGHOST_Window *get_window(xcb_window_t XW);
+
+    /**
+     * \return true if Properly handled amGHOST_kLostSystemXCB, e.g. XCB Connection is restored
+     */
+    bool handled_LostSystem(void);
+
+    bool _sent_xcb_lost_event_ = false;
+    /** sends amGHOST_kLostSystemXCB to all windows */
+    void _send_xcb_lost_event_(void);
 };

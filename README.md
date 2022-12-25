@@ -57,7 +57,7 @@ int main(void) {
 ##
 
 ## Build
-- `python make.py`  - That downloads 'extern' folder from [GoogleDrive](https://drive.google.com/file/d/1pGGfm0yh6bExzQlu3Da4-NJP86m6r_3s/)
+- `python make.py`  - ***it's interactive!!!*** That downloads 'extern' folder from [GoogleDrive](https://drive.google.com/file/d/1pGGfm0yh6bExzQlu3Da4-NJP86m6r_3s/)
     - ***GLEW*** [with CMakeLists.txt]
     - ***Vulkan-Sdk-Lunarg*** [Headers + Vulkan-Loader lib (`lib-vulkan.so vulkan.lib`]
 - You can make UR own copies of [amGHOST_Options.cmake](build_files/amGHOST_Options.cmake) & [amGHOST_Variables.cmake](build_files/amGHOST_Variables.cmake) </br> 

@@ -1,43 +1,8 @@
-#define VK_USE_PLATFORM_X11_KHR
+#define VK_USE_PLATFORM_WIN32_KHR
+#define _amGHOST_INC_VULKAN_
 #include "amVK_Logger.hh"
 #include "amGHOST_WindowWIN32.hh"
 #include "amGHOST_SystemWIN32.hh" //includes windows.h
-
-amGHOST_WindowWIN32::amGHOST_WindowWIN32(const char *title, int posX, int posY, int sizeX, int sizeY) 
-  : amGHOST_Window(title, posX, posY, sizeX, sizeY)
-{
-  amGHOST_SystemWIN32 *s_win32 = (amGHOST_SystemWIN32 *) amGHOST_System::heart;
-  HWND hwnd = ::CreateWindowA(
-    s_win32->s_wndClassName,      /** Name of the WNDCLASS [see protected vars of amGHOST_SystemWIN32] */
-    title,                        /** Title at the Top bar of the Window */
-    WS_OVERLAPPEDWINDOW,          /** Style of the window, all styles: https://docs.microsoft.com/en-us/windows/win32/winmsg/window-styles */
-     posX, posY,                  /** Horizontal, Vertical Position of window (top-left corner) */
-    sizeX, sizeY,                 /** NULL makes the CMD as the parent of this Window, for GUI apps, getDesktopWindow would return the entire Screen as Window */
-    (HMENU) nullptr,              /** The Handle to the Menu, remember that wndcls.lpszMenuName should have the menu Name TOO, or it wont work */
-    s_win32->s_hInstance,         /** Handle to the Instance the window is gonna get be Linked with.... I still don't why both wndclass and hInstance need this */
-    (LPVOID) nullptr              /** using this value as lParam of WndProc, CreatwWindowA Send WM_CREATE message to WndProc */
-  );
-
-  if (hwnd == nullptr) {
-    amVK_LOG_EX("[create_window FAILED]" << " WIN32 CreateWindowA Failed with exit code:- " << GetLastError() << "[HEX:- " << GetLastError() << "]");
-    return;
-  } 
-  else {
-    this->m_hwnd = hwnd;
-  }
-}
-
-bool amGHOST_WindowWIN32::destroyer() {
-  return ::DestroyWindow(this->m_hwnd);  //Sends WM_DESTROY Message and Destroyes the Window
-}
-
-void amGHOST_WindowWIN32::show_window(void) {
-  ::ShowWindow(this->m_hwnd, SW_SHOW);
-  ::SetFocus(this->m_hwnd);
-}
-void amGHOST_WindowWIN32::hide_window(void) {
-  ::ShowWindow(this->m_hwnd, SW_HIDE);
-}
 
 
 
@@ -93,16 +58,3 @@ VkSurfaceKHR amGHOST_WindowWIN32::create_vulkan_surface(VkInstance instance) {
 }
 
 #endif  //amGHOST_BUILD_VULKAN
-
-
-/**********************************************
---------- RenderContext Related Funcs ---------
-**********************************************/
-void amGHOST_WindowWIN32::activate_context() {
-  if (this->m_render_context != nullptr) {
-    this->m_render_context->activate_context();
-  }
-  else {
-    amVK_LOG_EX("No Rendering Context Was Created for This Window. Please Create one.. See amGHOST_Window.hh for Rendering Context Options lke Vulkan/Opengl");
-  }
-}

@@ -1,4 +1,5 @@
 #define VK_USE_PLATFORM_X11_KHR
+#define _amGHOST_INC_VULKAN_
 #include "amGHOST_SystemX11.hh"
 #include "amGHOST_WindowX11.hh"
 

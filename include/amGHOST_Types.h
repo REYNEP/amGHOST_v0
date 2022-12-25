@@ -64,9 +64,19 @@ typedef enum {
     amGHOST_kWindowClosed,   //see GHOST_kEventWindowDeactivate
 
     amGHOST_kWindowResizing,
-    amGHOST_kWindowResized   
+    amGHOST_kWindowResized,
+
+    amGHOST_kLostSystem      //see amGHOST_System::handled_LostSystem
 } amGHOST_EventType;
 typedef int32_t amGHOST_TEventType;
+
+typedef enum {
+  amGHOST_kLostSystemNone = 0,
+  amGHOST_kLostSystemXCB = 1,
+  amGHOST_kLostSystemX11 = 2,
+  amGHOST_kLostSystemWIN32 = 4
+} amGHOST_OSEvent;
+typedef int32_t amGHOST_TOSEvent;
 
 /** not used. from Blender GHOST */
 typedef enum {

@@ -5,7 +5,9 @@ meson_build
 .vscode
 
 /extern
+
 lib-amGHOST.lib
 lib-amGHOST.a
 *.lib
 *.a
+*.zip

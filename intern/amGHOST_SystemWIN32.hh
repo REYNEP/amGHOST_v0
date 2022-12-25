@@ -1,3 +1,6 @@
+#ifndef amGHOST_SystemWIN32_HH
+#define amGHOST_SystemWIN32_HH
+
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 
@@ -56,6 +59,8 @@ class amGHOST_SystemWIN32 : public amGHOST_System
     
  public:
   /**
+   * called by process_events() -> DispatchMessageA
+   * 
    * win32 (Window Procedure Function) - Deals with OS Messages and Events, hwnd is the Handle to Window
    * 
    *   C++ treats member functions and free functions as different - member functions need to have access to a this pointer, and typically that's passed in as a hidden first parameter.
@@ -65,3 +70,5 @@ class amGHOST_SystemWIN32 : public amGHOST_System
    */
   static LRESULT WINAPI WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 };
+
+#endif

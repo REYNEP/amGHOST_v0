@@ -85,6 +85,8 @@ class amGHOST_System
      * Process Events and send the Events to the EventQ (a std::deque type)
      * \param waitForEvent: Currently waitForEvent is STRONGLY RECOMMENED TO BE 1
      * \return true if there was any event processed, false if waitForEvent is false + No message in queue
+     * 
+     * TODO: *sleep* support
      */
     virtual bool process_events(bool waitForEvent) = 0;
     /**
@@ -95,6 +97,15 @@ class amGHOST_System
      *         if you use this feature.... then its best that you only work with 1 EK....
      */
     bool dispatch_events(void);
+
+    /** 
+     * should be called by user after properly handling amGHOST_kLostSystem, IMPL: XCB 
+     * 
+     * \return true if Properly handled amGHOST_kLostSystem event.... and system is no more lost
+     * 
+     * TODO: [HUGE WIP] We gotta work greatly on this... Honestly I don't know if We can recover if SYS is lost
+     */
+    virtual bool handled_LostSystem(void) {return false;}
 
     
     inline bool is_eventQ_empty(void) {return _EventQ.neXt == 0;}
