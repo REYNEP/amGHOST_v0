@@ -111,6 +111,7 @@ DOWNLOAD_MSG = "\nmake.py : `gdown.download [output = 'amGHOST_Externs.zip']`";
 def get_extern_GDrive():
     print(DOWNLOAD_MSG)
     #       https://drive.google.com/file/d/1jvsMTg-TdYcd7ps7ceAbkSuUngfZJQIS
+    #        We update,but link stays same, just file ver. changes on GDrive
     gdown.download(output="amGHOST_Externs.zip", id="1jvsMTg-TdYcd7ps7ceAbkSuUngfZJQIS", quiet=False)
 
     if(input("unzip amGHOST_Externs.zip? [Y/N]").lower() in ['y', 'yes']):

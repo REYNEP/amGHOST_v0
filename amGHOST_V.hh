@@ -29,6 +29,10 @@
     extern amGHOST_System *amGHOST_X;
     #define amGHOST_SYS    amGHOST_X
     #define amG_SYS        amGHOST_X
+    #define AMG_SYS        amGHOST_X
+    #define AMATEUR_GHOST  amGHOST_X
+    #define MARADONA       amGHOST_X
+    /** MARADONA, czzzz He.... He's Not alive anymore.... maybe became a GHOST.... */
     
 #endif
 

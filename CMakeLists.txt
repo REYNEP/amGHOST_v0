@@ -219,13 +219,15 @@ set(SRC
 
   # 😄
   include/amGHOST_Decode.hh
+  extern/decode/spng.c
+  extern/decode/miniz.c
 )
 
 set(INC
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/intern/
   ${PROJECT_SOURCE_DIR}/include/
-  ${PROJECT_SOURCE_DIR}/extern/wuffs/
+  ${PROJECT_SOURCE_DIR}/extern/decode/
 )
 
 set(INC_SYS
@@ -236,6 +238,7 @@ set(LIB
 
 # Prefix 'amGHOST_BUILD' will be added to all these in the end.... (it doesn't even matter - ches)
 set(DEF
+  SPNG_USE_MINIZ
 )
 
 

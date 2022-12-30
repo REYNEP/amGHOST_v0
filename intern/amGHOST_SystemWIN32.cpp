@@ -2,27 +2,21 @@
 #include "amGHOST_SystemWIN32.hh"
 #include "amGHOST_WindowWIN32.hh"
 
-amGHOST_SystemWIN32::amGHOST_SystemWIN32() {
-  this->reg_wc();
-  this->init_rawInput();
-}
+
 
 /**
- * DESTRUCTOR
+ * |------------|
+ * - Destructor -
+ * |------------|
+ * 
  * All the Windows, Contexts and Things are destroyed when dispose_system() is called....[Inside amGHOST_System.cpp]
  * But some functions like UnregisterClassA are only Win32 SPecific that's Why we have this DESTRUCTOR
  */
-bool amGHOST_SystemWIN32::destroyer(void) {
+void amGHOST_SystemWIN32::unreg_wc(void) {
   if (!::UnregisterClassA(s_wndClassName, s_hInstance)) {
-    amVK_LOG_EX("Window Class wasn't found or a Window using this class still exists exists....");
-    return false;
+    amVK_LOG_EX("[WIN32] a Window Still Exists (most prolly)....");
   }
-  return true;
 }
-
-
-
-
 
 /** 
  * |------------|
@@ -162,7 +156,7 @@ bool amGHOST_SystemWIN32::reg_wc() {
   WNDCLASS wcTMP;
 
   //openGL requires it to be CS_OWNDC, see https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
-  wcTMP.style = CS_OWNDC;
+  wcTMP.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
   //'&WndProc' is the same as 'WndProc', WndProc is a method of amGHOST_Win32 (a.k.a amGHOST_Win32::WndProc) [Yes, We can use func ptr as argument]
   wcTMP.lpfnWndProc = WndProc;
   //Instance that the Windows using this WNDCLASS would get Linked with and communicate THROUGH, eg. MSG messages, events [THINK of it like a gate]
@@ -204,8 +198,9 @@ void amGHOST_SystemWIN32::init_rawInput() {
 
   if (::RegisterRawInputDevices(devices, DEVICE_COUNT, sizeof(RAWINPUTDEVICE)))
     ;  // yay!
-  else 
+  else {
     amVK_LOG_EX("RegisterRawInputDevices Failed!!");
+  }
 
   #undef DEVICE_COUNT
 }
@@ -266,7 +261,12 @@ void amGHOST_SystemWIN32::process_keyEvent(amGHOST_Window* window, RAWKEYBOARD *
  * For Docs On these Functions, Check MSDN
  */
 
+/**
+ * NOT EVERYTHING SHOULD BE HERE....
+ *  EG: WM_SIZE should call \fn amGHOST_WindowWIN32::_MSG_kWindowResized()
+ */
 LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+  bool eventHandled = false;  // for calling DefWindowProc
   LRESULT lResult = 0;
   if (!hwnd) {
     // Events without valid hwnd
@@ -276,7 +276,11 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
   //amGHOST_Event members
   amGHOST_SystemWIN32 *m_system = (amGHOST_SystemWIN32 *) get_system();
-  amGHOST_Window *event_win = m_system->get_window(hwnd);
+  amGHOST_WindowWIN32 *event_win = reinterpret_cast<amGHOST_WindowWIN32 *> (m_system->get_window(hwnd));
+  if (event_win == nullptr) {
+    amVK_LOG("GHOST_SystemWin32::wndProc: Event got for no amGHOST_window: " << msg);
+    return ::DefWindowProc(hwnd, msg, wParam, lParam);
+  }
   
   amGHOST_Event *event = m_system->_get_nextSpot();
   *event = amGHOST_Event(amGHOST_kWindowClosed, event_win, amGHOST_kKeyUnknown);
@@ -290,11 +294,13 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
   
   switch (msg)  //must break after each case.... cz case is like 'Label'  and if you don't break the flow of code will continue
   {
-    case WM_PAINT:
+    case WM_PAINT: {
       PAINTSTRUCT ps;
-      BeginPaint(hwnd, &ps);
+      HDC hdc = BeginPaint(hwnd, &ps);
+      FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
       EndPaint(hwnd, &ps);
       break;
+    }
     case WM_DESTROY:  /** sent when someone calls DestroyWindow */
       *event = amGHOST_Event(amGHOST_kWindowClosed, event_win, amGHOST_kKeyUnknown);
       break;
@@ -304,10 +310,28 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
     case WM_SIZING:
       *event = amGHOST_Event(amGHOST_kWindowResizing, event_win, amGHOST_kKeyUnknown);
       break;
-    case WM_SIZE:
-      *event = amGHOST_Event(amGHOST_kWindowResized, event_win, amGHOST_kKeyUnknown);
-      _LOG("WM_SIZE got");
+    case WM_SIZE:{
       break;
+    }
+    case WM_MOVE:
+      break;
+    case WM_WINDOWPOSCHANGED: { /** WM_SIZE & WM_MOVE is sent... czzz we didn't do   eventHandled = TRUE; */
+      *event = amGHOST_Event(amGHOST_kWindowResizing, event_win, amGHOST_kKeyUnknown);
+      WINDOWPOS *_info = reinterpret_cast<WINDOWPOS *>(lParam);
+      uint32_t width  = _info->cx;
+      uint32_t height = _info->cy;
+      //_LOG("inDev: WM_SIZE");
+      event_win->_MSG_kWindowResized(width, height);
+      event_win->m_posX = _info->cx;
+      event_win->m_posY = _info->cy;
+
+      ::SetWindowPos(hwnd, NULL, _info->x, _info->y, _info->cx, _info->cy, SWP_SHOWWINDOW | SWP_DEFERERASE);
+      break;
+    }
+    case WM_EXITSIZEMOVE: { /** ModalLoop has been exitted.... ModalLoops are ENTERED if you dont handle WM_SYSCOMMAND */
+      *event = amGHOST_Event(amGHOST_kWindowResized, event_win, amGHOST_kKeyUnknown);
+      break;
+    }
 
     /* ----------------------------------------------------------------
      * Keyboard Events Processed With WM_INPUT.... 
@@ -414,12 +438,9 @@ LRESULT WINAPI amGHOST_SystemWIN32::WndProc(HWND hwnd, UINT msg, WPARAM wParam, 
       break;
     case WM_SYSKEYUP:
       break;
-    
-    // WITHOUT THE DEFAULT, Windows might Think of a program as Not Responsing
-    default:
-      lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);
-      break;
   }
+
+  if (!eventHandled) {lResult = ::DefWindowProc(hwnd, msg, wParam, lParam);}
 
   if (event->m_type == amGHOST_kUnknownEvent) {
     //HERE WE QUEUE the EVENT in the EventQ which is a Member of amGHOST_System

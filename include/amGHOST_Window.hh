@@ -20,16 +20,27 @@
 #endif
 
 
-
+/**
+ *  TODO: Faster \fn get_window() Implementation.... [WIN32]
+ *  TODO: Reconsider having set_wm_class() here
+ *  TODO: Handle no amGHOST_WindowWIN32 events too....  You will see that a WM_SIZE is reported even before any Win32 windows are created....
+ *        see https://github.com/blender/blender/blob/master/intern/ghost/intern/GHOST_SystemWin32.cpp#L1276  haha 😁
+ *  TODO: Implement WM_SYSCOMMAND support... 
+ *        https://sourceforge.net/p/win32loopl/code/ci/default/tree/LooplessSizeMove.c
+ *        https://stackoverflow.com/a/21240384
+ * 
+ *  TODO: add WM_MOVE Support inside WM_WINDOWPOSCHANGED....
+ */
 class amGHOST_Window
 {
  public:
   amGHOST_Context *m_render_context = nullptr;  /** [WIP] */
-  const char *m_title = "NO_TITLE";
-  int m_posX;
-  int m_posY;
-  int m_sizeX;
-  int m_sizeY;
+  const char               *m_title = "NO_TITLE";
+  void             *window_userData = nullptr;
+  uint32_t m_posX;
+  uint32_t m_posY;
+  uint32_t m_sizeX;
+  uint32_t m_sizeY;
 
   amGHOST_Window(const char *title, int posX, int posY, int sizeX, int sizeY)
   : m_title(title),
@@ -70,11 +81,20 @@ class amGHOST_Window
 
 
   /**
+   *   ╻ ╻   ┏━┓┏┳┓╻ ╻╻┏    ┏━╸╻ ╻┏━╸┏┓╻╺┳╸
+   *   ╺╋╸   ┣━┫┃┃┃┃┏┛┣┻┓   ┣╸ ┃┏┛┣╸ ┃┗┫ ┃ 
+   *   ╹ ╹   ╹ ╹╹ ╹┗┛ ╹ ╹╺━╸┗━╸┗┛ ┗━╸╹ ╹ ╹ 
+   */
+ public:
+  void _MSG_kWindowResized(uint32_t width, uint32_t height) {m_sizeX = width; m_sizeY = height;}
+
+
+ public:
+  /**
    *   ╻ ╻   ┏━┓╻  ┏━┓╺┳╸┏━╸┏━┓┏━┓┏┳┓   ┏━┓┏━┓┏━╸┏━╸╻┏━╸╻┏━╸
    *   ╺╋╸   ┣━┛┃  ┣━┫ ┃ ┣╸ ┃ ┃┣┳┛┃┃┃   ┗━┓┣━┛┣╸ ┃  ┃┣╸ ┃┃  
    *   ╹ ╹   ╹  ┗━╸╹ ╹ ╹ ╹  ┗━┛╹┗╸╹ ╹   ┗━┛╹  ┗━╸┗━╸╹╹  ╹┗━╸
    */
-
   /** XCB: PLATFORM_SPECIFIC, you must check the docs there.... [ inside amGHOST_WindowXCB.hh ] */
   virtual void set_wm_class(const char *wm_class, bool i_know_the_docs = false) {}
   /** TODO: virtual void set_ewmh_window_type(uint32_t TYPE) {} */

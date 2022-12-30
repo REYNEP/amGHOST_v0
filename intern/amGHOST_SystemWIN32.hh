@@ -22,12 +22,15 @@ typedef struct amGHOST_ResourceWIN32__ {
   HMODULE hInstance =     nullptr;
 } amGHOST_ResourceWIN32;
 
+
+/**
+ *  \fn reg_wc() & \fn init_rawInput() is really old 😄 I am just gonna let them be like this... not change them ever... maybe make Different versions 🤔 
+ */
 class amGHOST_SystemWIN32 : public amGHOST_System
 {
  public:
-  amGHOST_SystemWIN32();
-  ~amGHOST_SystemWIN32() { _LOG("~amGHOST_SystemWIN32():- calling  'destroyer()' ") destroyer(); }
-  bool destroyer(void);
+  amGHOST_SystemWIN32() {_LOG("amGHOST_SystemWIN32 Initialized.");    reg_wc(); init_rawInput();}
+ ~amGHOST_SystemWIN32() {_LOG("amGHOST_SystemWIN32 Destructing.");  unreg_wc(); }
 
 
   /** PureVirtual Funcs from amGHOST_System */
@@ -47,6 +50,7 @@ class amGHOST_SystemWIN32 : public amGHOST_System
  protected:
   amGHOST_Window *get_window(HWND hwnd);
   bool reg_wc(void);
+  void unreg_wc(void);
 
   /**
    * Called in CONSTRUCTOR
@@ -56,7 +60,7 @@ class amGHOST_SystemWIN32 : public amGHOST_System
   static void init_rawInput(void);
   static void process_keyEvent(amGHOST_Window *window, RAWKEYBOARD *raw, amGHOST_Event* event);
   
-    
+
  public:
   /**
    * called by process_events() -> DispatchMessageA

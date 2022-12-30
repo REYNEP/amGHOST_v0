@@ -70,6 +70,10 @@ int main(void) {
 - **Option:** `amGHOST_VULKAN_WindowSurface` [cmake, meson]
 - **FILES:** `amGHOST_Window.hh`
 
+`_LOG` (from `amVK`):
+- **Option:** `amGHOST_DEV` [cmake, (NO) meson]
+- **FILES:** `Literally Everywhere....`
+
 ## SMTH IN THE WAY
 `amGHOST_System`:
 * You can't just instantiate an `amGHOST_System` Object, cz this class contains *Pure-Virtual* funcs (a.k.a This is called an Abstract Class)
